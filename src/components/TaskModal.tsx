@@ -43,9 +43,9 @@ export default function TaskModal() {
     e.preventDefault();
     if (editingTaskId) {
       // In a full implementation, we'd have a useUpdateTask hook.
-      await supabase.from('operational_tasks').update(formData).eq('id', editingTaskId);
+      await supabase.from('operational_tasks').update(formData as OperationalTask).eq('id', editingTaskId);
     } else {
-      await createTask.mutateAsync(formData);
+      await createTask.mutateAsync(formData as OperationalTask);
     }
     setTaskModalOpen(false);
     setEditingTaskId(null);

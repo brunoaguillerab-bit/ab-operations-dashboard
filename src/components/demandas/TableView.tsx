@@ -181,15 +181,17 @@ function EditableTextCell({ value, onSave, onClick, className }: { value: string
 
   if (isEditing) {
     return (
-      <input 
-        type="text" 
-        value={val} 
-        onChange={e => setVal(e.target.value)} 
-        onBlur={handleBlur}
-        onKeyDown={handleKeyDown}
-        autoFocus
-        className={`bg-[#0B1020] border border-white/10 text-white rounded px-2 py-1 text-sm outline-none focus:border-[#3B82F6]/50 ${className || 'w-full'}`}
-      />
+      <div className="absolute top-1/2 -translate-y-1/2 -left-2 z-[60] min-w-[calc(100%+16px)] w-64 max-w-[500px]">
+        <input 
+          type="text" 
+          value={val} 
+          onChange={e => setVal(e.target.value)} 
+          onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
+          autoFocus
+          className="bg-[#050505] border border-[#3B82F6] text-white rounded-md px-3 py-1.5 text-sm outline-none w-full shadow-[0_8px_30px_rgba(0,0,0,0.5)]"
+        />
+      </div>
     );
   }
 
@@ -442,7 +444,7 @@ export function TableView({ items, onReorder, onOpenTask, onUpdateStatus, onEdit
                       );
                     case 'empresa':
                       return (
-                        <td key={col.id} style={{ width: w, minWidth: w, maxWidth: w }} className="px-4 py-3 border-r border-white/5 truncate">
+                        <td key={col.id} style={{ width: w, minWidth: w, maxWidth: w }} className="px-4 py-3 border-r border-white/5 relative group">
                           <EditableTextCell value={r.empresa} onSave={(val) => onUpdateTask?.(r, { empresa: val })} className="text-[#E2E8F0]" />
                         </td>
                       );
@@ -475,7 +477,7 @@ export function TableView({ items, onReorder, onOpenTask, onUpdateStatus, onEdit
                       );
                     case 'tarefa':
                       return (
-                        <td key={col.id} style={{ width: w, minWidth: w, maxWidth: w }} className="px-4 py-3 border-r border-white/5 transition-colors truncate">
+                        <td key={col.id} style={{ width: w, minWidth: w, maxWidth: w }} className="px-4 py-3 border-r border-white/5 transition-colors relative group">
                           <div className="flex items-center gap-3">
                             <EditableTextCell 
                               value={r.tarefaDemanda || r.nomeCliente} 
@@ -489,24 +491,24 @@ export function TableView({ items, onReorder, onOpenTask, onUpdateStatus, onEdit
                       );
                     case 'responsavel':
                       return (
-                        <td key={col.id} style={{ width: w, minWidth: w, maxWidth: w }} className="px-4 py-3 border-r border-white/5 truncate">
+                        <td key={col.id} style={{ width: w, minWidth: w, maxWidth: w }} className="px-4 py-3 border-r border-white/5 relative group">
                           <EditableResponsibleCell value={r.responsavel} onSave={(val) => onUpdateTask?.(r, { responsavel: val })} />
                         </td>
                       );
                     case 'status':
-                      return <td key={col.id} style={{ width: w, minWidth: w, maxWidth: w }} className="px-3 py-2.5 border-r border-white/5 truncate"><StatusBadgeCentral status={r.status} onChange={s => onUpdateStatus(r, s)} fullWidth /></td>;
+                      return <td key={col.id} style={{ width: w, minWidth: w, maxWidth: w }} className="px-3 py-2.5 border-r border-white/5 relative"><StatusBadgeCentral status={r.status} onChange={s => onUpdateStatus(r, s)} fullWidth /></td>;
                     case 'prazo':
-                      return <td key={col.id} style={{ width: w, minWidth: w, maxWidth: w }} className="px-4 py-3 border-r border-white/5 truncate"><EditableDateCell value={r.prazoEntrega} onSave={(val) => onUpdateTask?.(r, { prazoEntrega: val })} showIcon={true} /></td>;
+                      return <td key={col.id} style={{ width: w, minWidth: w, maxWidth: w }} className="px-4 py-3 border-r border-white/5 relative group"><EditableDateCell value={r.prazoEntrega} onSave={(val) => onUpdateTask?.(r, { prazoEntrega: val })} showIcon={true} /></td>;
                     case 'dataRelatorio':
-                      return <td key={col.id} style={{ width: w, minWidth: w, maxWidth: w }} className="px-4 py-3 border-r border-white/5 truncate"><EditableDateCell value={r.dataRelatorio} onSave={(val) => onUpdateTask?.(r, { dataRelatorio: val })} /></td>;
+                      return <td key={col.id} style={{ width: w, minWidth: w, maxWidth: w }} className="px-4 py-3 border-r border-white/5 relative group"><EditableDateCell value={r.dataRelatorio} onSave={(val) => onUpdateTask?.(r, { dataRelatorio: val })} /></td>;
                     case 'dataOtimizacao':
-                      return <td key={col.id} style={{ width: w, minWidth: w, maxWidth: w }} className="px-4 py-3 border-r border-white/5 truncate"><EditableDateCell value={r.dataOtimizacao} onSave={(val) => onUpdateTask?.(r, { dataOtimizacao: val })} /></td>;
+                      return <td key={col.id} style={{ width: w, minWidth: w, maxWidth: w }} className="px-4 py-3 border-r border-white/5 relative group"><EditableDateCell value={r.dataOtimizacao} onSave={(val) => onUpdateTask?.(r, { dataOtimizacao: val })} /></td>;
                     case 'ultMensagem':
-                      return <td key={col.id} style={{ width: w, minWidth: w, maxWidth: w }} className="px-4 py-3 border-r border-white/5 truncate"><EditableDateCell value={r.ultimaMensagem} onSave={(val) => onUpdateTask?.(r, { ultimaMensagem: val })} /></td>;
+                      return <td key={col.id} style={{ width: w, minWidth: w, maxWidth: w }} className="px-4 py-3 border-r border-white/5 relative group"><EditableDateCell value={r.ultimaMensagem} onSave={(val) => onUpdateTask?.(r, { ultimaMensagem: val })} /></td>;
                     case 'saldoGoogle':
-                      return <td key={col.id} style={{ width: w, minWidth: w, maxWidth: w }} className="px-4 py-3 border-r border-white/5 text-[#E2E8F0] truncate">{r.saldoContaGoogleAds ? `R$ ${r.saldoContaGoogleAds.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}</td>;
+                      return <td key={col.id} style={{ width: w, minWidth: w, maxWidth: w }} className="px-4 py-3 border-r border-white/5 text-[#E2E8F0] relative">{r.saldoContaGoogleAds ? `R$ ${r.saldoContaGoogleAds.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}</td>;
                     case 'saldoMeta':
-                      return <td key={col.id} style={{ width: w, minWidth: w, maxWidth: w }} className="px-4 py-3 border-r border-white/5 text-[#E2E8F0] truncate">{r.saldoContaMetaAds ? `R$ ${r.saldoContaMetaAds.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}</td>;
+                      return <td key={col.id} style={{ width: w, minWidth: w, maxWidth: w }} className="px-4 py-3 border-r border-white/5 text-[#E2E8F0] relative">{r.saldoContaMetaAds ? `R$ ${r.saldoContaMetaAds.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : '-'}</td>;
                     default:
                       return null;
                   }
