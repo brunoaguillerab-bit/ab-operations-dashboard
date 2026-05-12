@@ -74,14 +74,14 @@ function toInsert(row: ClienteDemanda) {
 
 export async function listDemandasCentral(): Promise<ClienteDemanda[]> {
   if (!supabaseConfigured) return [];
-  const { data, error } = await supabase.from(TABLE).select('*').order('created_at', { ascending: false });
+  const { data, error } = await (supabase as any).from(TABLE).select('*').order('created_at', { ascending: false });
   if (error) throw error;
-  return (data || []).map((row) => normalizeRow(row as Record<string, unknown>));
+  return (data || []).map((row: Record<string, unknown>) => normalizeRow(row));
 }
 
 export async function upsertDemandaCentral(row: ClienteDemanda): Promise<void> {
   if (!supabaseConfigured) return;
-  const { error } = await supabase.from(TABLE).upsert(toInsert(row), { onConflict: 'id' });
+  const { error } = await (supabase as any).from(TABLE).upsert(toInsert(row), { onConflict: 'id' });
   if (error) throw error;
 }
 
@@ -110,7 +110,7 @@ export async function updateDemandaCentral(id: string, updates: Partial<ClienteD
   if (updates.tags !== undefined) payload.tags = updates.tags;
   if (updates.arquivado !== undefined) payload.arquivado = updates.arquivado;
 
-  const { error } = await supabase.from(TABLE).update(payload).eq('id', id);
+  const { error } = await (supabase as any).from(TABLE).update(payload).eq('id', id);
   if (error) throw error;
 }
 
@@ -147,7 +147,7 @@ export async function createDemandaCentral(seed?: Partial<ClienteDemanda>): Prom
 
 export async function saveDemandasFilters(userKey: string, payload: DashboardFiltersPayload): Promise<void> {
   if (!supabaseConfigured) return;
-  const { error } = await supabase.from(PREF_TABLE).upsert({ user_key: userKey, view_key: VIEW_KEY, payload }, { onConflict: 'user_key,view_key' });
+  const { error } = await (supabase as any).from(PREF_TABLE).upsert({ user_key: userKey, view_key: VIEW_KEY, payload }, { onConflict: 'user_key,view_key' });
   if (error) throw error;
 }
 
@@ -160,7 +160,7 @@ export async function loadDemandasFilters(userKey: string): Promise<DashboardFil
     .eq('view_key', VIEW_KEY)
     .maybeSingle();
   if (error) throw error;
-  return (data?.payload as DashboardFiltersPayload | null) || null;
+  return ((data as any)?.payload as DashboardFiltersPayload | null) || null;
 }
 
 

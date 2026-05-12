@@ -47,6 +47,10 @@ export const demandasService = {
       aguardandoCliente: mockDemandas.filter(d => d.status === 'aguardando_cliente').length,
       concluidas: mockDemandas.filter(d => d.status === 'concluida').length,
       urgentes: mockDemandas.filter(d => d.prioridade === 'urgente').length,
+      emRevisao: 0,
+      vencidas: 0,
+      prazoHoje: 0,
+      semAtualizacao: 0,
     };
   },
 };

@@ -42,8 +42,7 @@ export default function TaskModal() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingTaskId) {
-      // In a full implementation, we'd have a useUpdateTask hook.
-      await supabase.from('operational_tasks').update(formData as any).eq('id', editingTaskId);
+      await (supabase as any).from('operational_tasks').update(formData).eq('id', editingTaskId);
     } else {
       await createTask.mutateAsync(formData as any);
     }

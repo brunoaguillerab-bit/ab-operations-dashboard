@@ -54,7 +54,7 @@ export function useUpdateTaskStatus() {
 
   return useMutation({
     mutationFn: async ({ id, status }: { id: string, status: TaskStatus }) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('operational_tasks')
         .update({ status })
         .eq('id', id)
@@ -90,7 +90,7 @@ export function useCreateTask() {
 
   return useMutation({
     mutationFn: async (task: Partial<OperationalTask>) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('operational_tasks')
         .insert([task])
         .select()

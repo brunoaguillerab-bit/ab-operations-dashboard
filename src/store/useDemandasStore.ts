@@ -164,8 +164,8 @@ export const useDemandasStore = create<DemandasState>()(
                   ...d.historico,
                   makeHistoricoItem('edicao', `${campo} alterado`, {
                     campo,
-                    valorAnterior: String((d as Record<string, unknown>)[campo] ?? ''),
-                    valorNovo: String((updates as Record<string, unknown>)[campo] ?? ''),
+                    valorAnterior: String((d as unknown as Record<string, unknown>)[campo] ?? ''),
+                    valorNovo: String((updates as unknown as Record<string, unknown>)[campo] ?? ''),
                   }),
                 ]
               : d.historico;
