@@ -16,7 +16,7 @@ export default function ABOverviewPage() {
           subtitle="Performance consolidada de todos os canais e projetos"
         />
         <EmbedFrame
-          baseUrl="http://localhost:3001"
+          baseUrl="https://ab-marketing-dashboard.vercel.app"
           hash="overview"
           title="AB Overview"
         />

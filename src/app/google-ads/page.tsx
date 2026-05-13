@@ -24,7 +24,7 @@ export default function GoogleAdsPage() {
           subtitle="Search, PMax, Display — campanhas, termos de pesquisa e ROAS"
         />
         <EmbedFrame
-          baseUrl="http://localhost:3001"
+          baseUrl="https://ab-marketing-dashboard.vercel.app"
           hash="google-ads"
           title="Google Ads"
         />
