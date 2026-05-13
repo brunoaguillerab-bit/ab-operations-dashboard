@@ -21,10 +21,10 @@ export default function ABOverviewContent({ demandas }: ABOverviewContentProps) 
 
     const totalGasto = demandas.reduce((sum, d) => sum + (d.valorMensalidade || 0), 0);
     const googleGasto = demandas
-      .filter(d => d.midia === 'Google' || d.midia === 'Google Ads')
+      .filter(d => (d.midia as string) === 'Google' || d.midia === 'Google Ads' || d.midia === 'Google e Meta')
       .reduce((sum, d) => sum + (d.saldoContaGoogleAds || 0), 0);
     const metaGasto = demandas
-      .filter(d => d.midia === 'Meta' || d.midia === 'Meta Ads')
+      .filter(d => (d.midia as string) === 'Meta' || d.midia === 'Meta Ads' || d.midia === 'Google e Meta')
       .reduce((sum, d) => sum + (d.saldoContaMetaAds || 0), 0);
 
     return {
