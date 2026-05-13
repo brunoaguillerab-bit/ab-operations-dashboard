@@ -163,6 +163,12 @@ export async function loadDemandasFilters(userKey: string): Promise<DashboardFil
   return ((data as any)?.payload as DashboardFiltersPayload | null) || null;
 }
 
+export async function deleteDemandaCentral(id: string): Promise<void> {
+  if (!supabaseConfigured) return;
+  const { error } = await (supabase as any).from(TABLE).delete().eq('id', id);
+  if (error) throw error;
+}
+
 
 
 

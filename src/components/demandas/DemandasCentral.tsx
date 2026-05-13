@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {  BarChart3, Calendar, Kanban, LayoutList, Plus, Search, Table, Timer, X, Filter } from 'lucide-react';
 import { ClienteCategoria, ClienteDemanda, DemandaClienteStatus, FiltrosPorColuna, SortState } from '@/types/demandasCentral';
-import { DashboardFiltersPayload, listDemandasCentral, loadDemandasFilters, saveDemandasFilters, updateDemandaCentral } from '@/services/demandasCentralService';
+import { DashboardFiltersPayload, listDemandasCentral, loadDemandasFilters, saveDemandasFilters, updateDemandaCentral, deleteDemandaCentral } from '@/services/demandasCentralService';
 import { canTransitionToStatus } from '@/data/statusRules';
 import DemandaCreateWizardModal from '@/components/demandas/DemandaCreateWizardModal';
 import { TableView } from './TableView';
@@ -146,13 +146,21 @@ export default function DemandasCentral({ data }: Props) {
     });
   };
 
-  const handleDelete = (task: ClienteDemanda) => {
+  const handleDelete = async (task: ClienteDemanda) => {
+    const clienteName = task.nomeCliente;
     setRows((prev) => prev.filter(r => r.id !== task.id));
     if (selectedTask?.id === task.id) {
       setSelectedTask(null);
     }
-    pushToast('success', `"${task.nomeCliente}" foi deletado com sucesso.`);
     appendActivity(task.id, 'Tarefa deletada');
+    try {
+      await deleteDemandaCentral(task.id);
+      pushToast('success', `"${clienteName}" foi deletado com sucesso.`);
+    } catch {
+      pushToast('error', `Erro ao deletar "${clienteName}". Tente novamente.`);
+      // Revert deletion
+      setRows((prev) => [task, ...prev]);
+    }
   };
 
   const exportCsv = () => {
