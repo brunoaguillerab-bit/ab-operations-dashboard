@@ -1,11 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import PageHeader from '@/components/PageHeader';
-import GoogleAdsContent from '@/components/GoogleAdsContent';
-import { ClienteDemanda } from '@/types/demandasCentral';
-import { listDemandasCentral } from '@/services/demandasCentralService';
+import EmbedFrame from '@/components/EmbedFrame';
 
 const GoogleLogo = ({ size = 22, className = '' }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} xmlns="http://www.w3.org/2000/svg">
@@ -17,26 +14,6 @@ const GoogleLogo = ({ size = 22, className = '' }) => (
 );
 
 export default function GoogleAdsPage() {
-  const [demandas, setDemandas] = useState<ClienteDemanda[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const loadDemandas = async () => {
-      try {
-        setIsLoading(true);
-        const data = await listDemandasCentral();
-        setDemandas(data);
-      } catch (error) {
-        console.error('Erro ao carregar demandas:', error);
-        setDemandas([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadDemandas();
-  }, []);
-
   return (
     <DashboardLayout>
       <div className="flex flex-col h-screen overflow-hidden">
@@ -46,15 +23,11 @@ export default function GoogleAdsPage() {
           title="Google Ads"
           subtitle="Search, PMax, Display — campanhas, termos de pesquisa e ROAS"
         />
-        {isLoading ? (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <p className="text-[#A1A1AA]">Carregando...</p>
-            </div>
-          </div>
-        ) : (
-          <GoogleAdsContent demandas={demandas} />
-        )}
+        <EmbedFrame
+          baseUrl="http://localhost:3001"
+          hash="google-ads"
+          title="Google Ads"
+        />
       </div>
     </DashboardLayout>
   );
