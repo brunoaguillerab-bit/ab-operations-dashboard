@@ -1,11 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import PageHeader from '@/components/PageHeader';
-import MetaAdsContent from '@/components/MetaAdsContent';
-import { listDemandasCentral } from '@/services/demandasCentralService';
-import { ClienteDemanda } from '@/types/demandasCentral';
+import EmbedFrame from '@/components/EmbedFrame';
 
 const MetaLogo = ({ size = 22, className = '' }) => (
   <svg width={size} height={size} viewBox="0 0 36 36" fill="none" className={className} xmlns="http://www.w3.org/2000/svg">
@@ -14,29 +11,6 @@ const MetaLogo = ({ size = 22, className = '' }) => (
 );
 
 export default function MetaAdsPage() {
-  const [demandas, setDemandas] = useState<ClienteDemanda[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        console.log('Carregando demandas Meta Ads...');
-        const data = await listDemandasCentral();
-        console.log('Demandas carregadas:', data);
-        setDemandas(data || []);
-        setError(null);
-      } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : String(err);
-        console.error('Erro ao carregar demandas:', errorMsg);
-        setError(errorMsg);
-        setDemandas([]);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
-
   return (
     <DashboardLayout>
       <div className="flex flex-col h-screen overflow-hidden">
@@ -46,20 +20,11 @@ export default function MetaAdsPage() {
           title="Meta Ads"
           subtitle="Facebook & Instagram — campanhas, leads, criativos e performance"
         />
-        {loading ? (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-10 w-10 border-2 border-blue-600 border-t-transparent"></div>
-          </div>
-        ) : error ? (
-          <div className="flex-1 flex items-center justify-center p-6">
-            <div className="text-center">
-              <p className="text-red-400 font-semibold mb-2">Erro ao carregar dados</p>
-              <p className="text-[#A1A1AA] text-sm">{error}</p>
-            </div>
-          </div>
-        ) : (
-          <MetaAdsContent demandas={demandas} />
-        )}
+        <EmbedFrame
+          baseUrl="http://localhost:3001"
+          hash="meta-ads"
+          title="Meta Ads"
+        />
       </div>
     </DashboardLayout>
   );
