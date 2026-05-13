@@ -8,7 +8,7 @@ interface MetaAdsContentProps {
 }
 
 export default function MetaAdsContent({ demandas }: MetaAdsContentProps) {
-  const metaCampaigns = demandas.filter(d => d.midia === 'Meta Ads' || d.midia === 'Meta');
+  const metaCampaigns = demandas.filter(d => d.midia === 'Meta Ads' || d.midia === 'Google e Meta');
 
   const getStatusColor = (status: string) => {
     switch (status) {
