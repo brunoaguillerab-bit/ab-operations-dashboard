@@ -1,8 +1,12 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import PageHeader from '@/components/PageHeader';
-import EmbedFrame from '@/components/EmbedFrame';
+import GoogleAdsContent from '@/components/GoogleAdsContent';
+import { listDemandasCentral } from '@/services/demandasCentralService';
+import { ClienteDemanda } from '@/types/demandasCentral';
+
 const GoogleLogo = ({ size = 22, className = '' }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className} xmlns="http://www.w3.org/2000/svg">
     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#FFFFFF"/>
@@ -13,6 +17,22 @@ const GoogleLogo = ({ size = 22, className = '' }) => (
 );
 
 export default function GoogleAdsPage() {
+  const [demandas, setDemandas] = useState<ClienteDemanda[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await listDemandasCentral();
+        setDemandas(data);
+      } catch (error) {
+        console.error('Erro ao carregar demandas:', error);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
   return (
     <DashboardLayout>
       <div className="flex flex-col h-screen overflow-hidden">
@@ -22,11 +42,13 @@ export default function GoogleAdsPage() {
           title="Google Ads"
           subtitle="Search, PMax, Display — campanhas, termos de pesquisa e ROAS"
         />
-        <EmbedFrame
-          baseUrl="http://localhost:3001"
-          hash="google-ads"
-          title="Google Ads"
-        />
+        {loading ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-10 w-10 border-2 border-green-600 border-t-transparent"></div>
+          </div>
+        ) : (
+          <GoogleAdsContent demandas={demandas} />
+        )}
       </div>
     </DashboardLayout>
   );
