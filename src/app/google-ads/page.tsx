@@ -19,14 +19,21 @@ const GoogleLogo = ({ size = 22, className = '' }) => (
 export default function GoogleAdsPage() {
   const [demandas, setDemandas] = useState<ClienteDemanda[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
       try {
+        console.log('Carregando demandas Google Ads...');
         const data = await listDemandasCentral();
-        setDemandas(data);
-      } catch (error) {
-        console.error('Erro ao carregar demandas:', error);
+        console.log('Demandas carregadas:', data);
+        setDemandas(data || []);
+        setError(null);
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        console.error('Erro ao carregar demandas:', errorMsg);
+        setError(errorMsg);
+        setDemandas([]);
       } finally {
         setLoading(false);
       }
@@ -45,6 +52,13 @@ export default function GoogleAdsPage() {
         {loading ? (
           <div className="flex-1 flex items-center justify-center">
             <div className="animate-spin rounded-full h-10 w-10 border-2 border-green-600 border-t-transparent"></div>
+          </div>
+        ) : error ? (
+          <div className="flex-1 flex items-center justify-center p-6">
+            <div className="text-center">
+              <p className="text-red-400 font-semibold mb-2">Erro ao carregar dados</p>
+              <p className="text-[#A1A1AA] text-sm">{error}</p>
+            </div>
           </div>
         ) : (
           <GoogleAdsContent demandas={demandas} />

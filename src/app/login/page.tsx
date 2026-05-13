@@ -62,11 +62,12 @@ function LoginForm() {
       <div className="relative w-full max-w-sm">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#EF4444] to-[#DC2626] flex items-center justify-center shadow-lg shadow-red-900/40 mb-4">
-            <span className="text-white font-bold text-xl">AB</span>
-          </div>
-          <h1 className="text-2xl font-bold text-white">AB Track</h1>
-          <p className="text-[#6B7280] text-sm mt-1">Painel operacional da agência</p>
+          <img 
+            src="/logo.png" 
+            alt="AB Tracking" 
+            className="h-36 w-auto mb-2 drop-shadow-2xl" 
+          />
+          <p className="text-[#6B7280] text-sm font-medium tracking-wide">Painel operacional da agência</p>
         </div>
 
         {/* Form */}
@@ -146,7 +147,7 @@ function LoginForm() {
         </form>
 
         <p className="text-center text-[#4B5563] text-xs mt-6">
-          Acesso restrito · AB Track Operacional
+          Acesso restrito · AB Tracking Operacional
         </p>
       </div>
     </div>

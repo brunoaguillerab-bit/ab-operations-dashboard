@@ -69,11 +69,13 @@ export default function Sidebar() {
       <div className="p-6 pb-8 border-b border-white/5 flex items-center justify-between">
         {!isCollapsed && (
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[#EF4444]/10 border border-[#EF4444]/20 flex items-center justify-center shadow-[0_0_15px_rgba(239,68,68,0.2)]">
-              <span className="text-[#EF4444] font-bold text-xs tracking-wider">AB</span>
-            </div>
+            <img 
+              src="/logo.png" 
+              alt="AB Tracking" 
+              className="h-9 w-auto" 
+            />
             <div className="flex flex-col">
-              <span className="text-white font-semibold text-[13px] tracking-wide">AB Track</span>
+              <span className="text-white font-semibold text-[13px] tracking-wide leading-tight">AB Tracking</span>
               <span className="text-[10px] text-[#A1A1AA] uppercase tracking-widest font-medium">Premium</span>
             </div>
           </div>
