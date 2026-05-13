@@ -1,8 +1,11 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import PageHeader from '@/components/PageHeader';
-import EmbedFrame from '@/components/EmbedFrame';
+import MetaAdsContent from '@/components/MetaAdsContent';
+import { ClienteDemanda } from '@/types/demandasCentral';
+import { listDemandasCentral } from '@/services/demandasCentralService';
 
 const MetaLogo = ({ size = 22, className = '' }) => (
   <svg width={size} height={size} viewBox="0 0 36 36" fill="none" className={className} xmlns="http://www.w3.org/2000/svg">
@@ -11,6 +14,26 @@ const MetaLogo = ({ size = 22, className = '' }) => (
 );
 
 export default function MetaAdsPage() {
+  const [demandas, setDemandas] = useState<ClienteDemanda[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadDemandas = async () => {
+      try {
+        setIsLoading(true);
+        const data = await listDemandasCentral();
+        setDemandas(data);
+      } catch (error) {
+        console.error('Erro ao carregar demandas:', error);
+        setDemandas([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadDemandas();
+  }, []);
+
   return (
     <DashboardLayout>
       <div className="flex flex-col h-screen overflow-hidden">
@@ -20,11 +43,15 @@ export default function MetaAdsPage() {
           title="Meta Ads"
           subtitle="Facebook & Instagram — campanhas, leads, criativos e performance"
         />
-        <EmbedFrame
-          baseUrl="http://localhost:3001"
-          hash="meta-ads"
-          title="Meta Ads"
-        />
+        {isLoading ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <p className="text-[#A1A1AA]">Carregando...</p>
+            </div>
+          </div>
+        ) : (
+          <MetaAdsContent demandas={demandas} />
+        )}
       </div>
     </DashboardLayout>
   );
