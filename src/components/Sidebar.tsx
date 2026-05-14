@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
@@ -69,10 +70,14 @@ export default function Sidebar() {
       <div className="p-6 pb-8 border-b border-white/5 flex items-center justify-between">
         {!isCollapsed && (
           <div className="flex items-center gap-3">
-            <img 
-              src="/logo.png" 
-              alt="AB Tracking" 
-              className="h-9 w-auto" 
+            <Image
+              src="/logo.png"
+              alt="AB Tracking"
+              width={36}
+              height={36}
+              unoptimized
+              className="h-9 w-auto"
+              priority
             />
             <div className="flex flex-col">
               <span className="text-white font-semibold text-[13px] tracking-wide leading-tight">AB Tracking</span>
