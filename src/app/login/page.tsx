@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -68,8 +69,15 @@ function LoginForm() {
 
         {/* Logo */}
         <div style={styles.logoWrap}>
-          <img src="/logo.png" alt="AB Tracking" style={styles.logoImg} />
-          <div style={styles.logoSeparator} />
+          <Image
+            src="/logo.png"
+            alt="AB Tracking"
+            width={320}
+            height={160}
+            unoptimized
+            style={{ height: 160, width: 'auto', filter: 'drop-shadow(0 0 32px rgba(239,68,68,0.3)) drop-shadow(0 4px 16px rgba(0,0,0,0.5))' }}
+            priority
+          /><div style={styles.logoSeparator} />
           <p style={styles.logoSubtitle}>Painel Operacional</p>
         </div>
 
