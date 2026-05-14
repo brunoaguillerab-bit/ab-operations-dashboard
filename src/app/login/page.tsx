@@ -1,10 +1,8 @@
 'use client';
-// Force redeploy to update logo - 11:35
-
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 function LoginForm() {
@@ -12,13 +10,15 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const { user, loading: authLoading, login } = useAuth();
 
-  const [username,    setUsername]    = useState('');
-  const [password,    setPassword]    = useState('');
-  const [showPass,    setShowPass]    = useState(false);
-  const [error,       setError]       = useState<string | null>(null);
-  const [submitting,  setSubmitting]  = useState(false);
+  const [username,   setUsername]   = useState('');
+  const [password,   setPassword]   = useState('');
+  const [showPass,   setShowPass]   = useState(false);
+  const [error,      setError]      = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [mounted,    setMounted]    = useState(false);
 
-  // Redirect if already authenticated
+  useEffect(() => { setMounted(true); }, []);
+
   useEffect(() => {
     if (!authLoading && user) {
       const from = searchParams.get('from') ?? '/clientes';
@@ -31,130 +31,465 @@ function LoginForm() {
     if (submitting) return;
     setError(null);
     setSubmitting(true);
-
     const result = await login(username.trim(), password);
     if (result.error) {
       setError(result.error);
       setSubmitting(false);
     }
-    // On success, the AuthContext sets user → useEffect above redirects
   }
 
-  // Show nothing while checking session
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#0F1117] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#EF4444] border-t-transparent rounded-full animate-spin" />
+      <div style={styles.page}>
+        <div style={styles.spinner} />
       </div>
     );
   }
 
-  // Already logged in — flash-free redirect handled by useEffect
   if (user) return null;
 
-  return (
-    <div className="min-h-screen bg-[#0F1117] flex flex-col items-center justify-center px-4">
-      {/* Background accent */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-[#EF4444]/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-[#EF4444]/5 rounded-full blur-3xl" />
-      </div>
+  const canSubmit = username.trim().length > 0 && password.length > 0 && !submitting;
 
-      {/* Card */}
-      <div className="relative w-full max-w-sm">
+  return (
+    <div style={styles.page}>
+      {/* ── Animated background orbs ── */}
+      <div style={styles.orb1} />
+      <div style={styles.orb2} />
+      <div style={styles.orb3} />
+
+      {/* ── Noise texture overlay ── */}
+      <div style={styles.noiseOverlay} />
+
+      {/* ── Grid lines ── */}
+      <div style={styles.gridOverlay} />
+
+      {/* ── Content ── */}
+      <div style={{ ...styles.wrapper, opacity: mounted ? 1 : 0, transform: mounted ? 'translateY(0)' : 'translateY(20px)', transition: 'opacity 0.7s ease, transform 0.7s ease' }}>
+
         {/* Logo */}
-        <div className="flex flex-col items-center mb-8">
-          <img 
-            src="/logo.png" 
-            alt="AB Tracking" 
-            className="h-36 w-auto mb-2 drop-shadow-2xl" 
-          />
-          <p className="text-[#6B7280] text-sm font-medium tracking-wide">Painel operacional da agência</p>
+        <div style={styles.logoWrap}>
+          <img src="/logo.png" alt="AB Tracking" style={styles.logoImg} />
+          <div style={styles.logoSeparator} />
+          <p style={styles.logoSubtitle}>Painel Operacional</p>
         </div>
 
-        {/* Form */}
-        <form
-          onSubmit={handleSubmit}
-          className="bg-[#181C25] border border-[#2A2F3A] rounded-2xl p-8 shadow-2xl"
-        >
-          <h2 className="text-lg font-semibold text-white mb-6">Entrar na conta</h2>
+        {/* Card */}
+        <div style={styles.card}>
+          {/* Card top glow line */}
+          <div style={styles.cardTopLine} />
 
-          {/* Error banner */}
-          {error && (
-            <div className="flex items-start gap-2.5 mb-5 p-3.5 bg-red-900/20 border border-red-600/40 rounded-lg">
-              <AlertCircle size={16} className="text-red-400 flex-shrink-0 mt-0.5" />
-              <p className="text-red-400 text-sm">{error}</p>
+          <div style={styles.cardInner}>
+            <div style={styles.cardHeader}>
+              <h1 style={styles.cardTitle}>Bem‑vindo de volta</h1>
+              <p style={styles.cardDesc}>Entre com suas credenciais para continuar</p>
             </div>
-          )}
 
-          {/* Username */}
-          <div className="mb-4">
-            <label className="block text-xs font-medium text-[#A1A1AA] uppercase tracking-wider mb-2">
-              Usuário
-            </label>
-            <input
-              type="text"
-              autoComplete="username"
-              value={username}
-              onChange={e => { setUsername(e.target.value); setError(null); }}
-              placeholder="seu.usuario"
-              required
-              className="w-full px-4 py-3 bg-[#0F1117] border border-[#2A2F3A] rounded-lg text-white placeholder-[#4B5563] text-sm focus:outline-none focus:border-[#EF4444] focus:ring-1 focus:ring-[#EF4444]/20 transition-colors"
-            />
-          </div>
-
-          {/* Password */}
-          <div className="mb-6">
-            <label className="block text-xs font-medium text-[#A1A1AA] uppercase tracking-wider mb-2">
-              Senha
-            </label>
-            <div className="relative">
-              <input
-                type={showPass ? 'text' : 'password'}
-                autoComplete="current-password"
-                value={password}
-                onChange={e => { setPassword(e.target.value); setError(null); }}
-                placeholder="••••••••"
-                required
-                className="w-full px-4 py-3 pr-11 bg-[#0F1117] border border-[#2A2F3A] rounded-lg text-white placeholder-[#4B5563] text-sm focus:outline-none focus:border-[#EF4444] focus:ring-1 focus:ring-[#EF4444]/20 transition-colors"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPass(v => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#4B5563] hover:text-[#A1A1AA] transition-colors"
-              >
-                {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-          </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={submitting || !username || !password}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#EF4444] hover:bg-[#DC2626] disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-sm rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-[#EF4444]/40"
-          >
-            {submitting ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                Entrando…
-              </>
-            ) : (
-              <>
-                <LogIn size={16} />
-                Entrar
-              </>
+            {/* Error banner */}
+            {error && (
+              <div style={styles.errorBanner}>
+                <AlertCircle size={15} style={{ color: '#F87171', flexShrink: 0, marginTop: 1 }} />
+                <p style={styles.errorText}>{error}</p>
+              </div>
             )}
-          </button>
-        </form>
 
-        <p className="text-center text-[#4B5563] text-xs mt-6">
+            <form onSubmit={handleSubmit} style={styles.form}>
+              {/* Email / Username field */}
+              <div style={styles.fieldGroup}>
+                <label style={styles.label}>Usuário</label>
+                <div style={styles.inputWrap}>
+                  <input
+                    id="login-username"
+                    type="text"
+                    autoComplete="username"
+                    value={username}
+                    onChange={e => { setUsername(e.target.value); setError(null); }}
+                    placeholder="seu.usuario"
+                    required
+                    style={styles.input}
+                    onFocus={e => Object.assign(e.target.style, styles.inputFocus)}
+                    onBlur={e => Object.assign(e.target.style, styles.inputBlur)}
+                  />
+                </div>
+              </div>
+
+              {/* Password field */}
+              <div style={styles.fieldGroup}>
+                <label style={styles.label}>Senha</label>
+                <div style={{ ...styles.inputWrap, position: 'relative' }}>
+                  <input
+                    id="login-password"
+                    type={showPass ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={e => { setPassword(e.target.value); setError(null); }}
+                    placeholder="••••••••"
+                    required
+                    style={{ ...styles.input, paddingRight: 48 }}
+                    onFocus={e => Object.assign(e.target.style, styles.inputFocus)}
+                    onBlur={e => Object.assign(e.target.style, styles.inputBlur)}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPass(v => !v)}
+                    style={styles.eyeBtn}
+                    onMouseEnter={e => (e.currentTarget.style.color = '#A1A1AA')}
+                    onMouseLeave={e => (e.currentTarget.style.color = '#4B5563')}
+                  >
+                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Submit */}
+              <button
+                id="login-submit"
+                type="submit"
+                disabled={!canSubmit}
+                style={{
+                  ...styles.submitBtn,
+                  opacity: canSubmit ? 1 : 0.45,
+                  cursor: canSubmit ? 'pointer' : 'not-allowed',
+                }}
+                onMouseEnter={e => { if (canSubmit) Object.assign(e.currentTarget.style, styles.submitBtnHover); }}
+                onMouseLeave={e => { if (canSubmit) Object.assign(e.currentTarget.style, { transform: 'translateY(0)', boxShadow: styles.submitBtn.boxShadow }); }}
+              >
+                {submitting ? (
+                  <>
+                    <div style={styles.btnSpinner} />
+                    <span>Entrando…</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Entrar</span>
+                    <ArrowRight size={16} />
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <p style={styles.footer}>
+          <span style={styles.footerDot} />
           Acesso restrito · AB Tracking Operacional
         </p>
       </div>
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        @keyframes orbFloat1 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(40px, -30px) scale(1.05); }
+          66% { transform: translate(-20px, 20px) scale(0.97); }
+        }
+        @keyframes orbFloat2 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(-50px, 30px) scale(1.08); }
+          66% { transform: translate(30px, -20px) scale(0.95); }
+        }
+        @keyframes orbFloat3 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(20px, 40px) scale(1.1); }
+        }
+        @keyframes spinBtn {
+          to { transform: rotate(360deg); }
+        }
+        @keyframes shimmer {
+          0% { background-position: -200% center; }
+          100% { background-position: 200% center; }
+        }
+        #login-username, #login-password {
+          font-family: 'Inter', sans-serif !important;
+        }
+        #login-username::placeholder, #login-password::placeholder {
+          color: #3A3F4A;
+        }
+        #login-submit {
+          background: linear-gradient(135deg, #EF4444 0%, #DC2626 50%, #B91C1C 100%);
+          background-size: 200% auto;
+          transition: transform 0.2s ease, box-shadow 0.2s ease, background-position 0.4s ease;
+        }
+        #login-submit:hover:not(:disabled) {
+          background-position: right center;
+        }
+      `}</style>
     </div>
   );
 }
+
+/* ─── Styles ─────────────────────────────────────────────────────────── */
+const styles: Record<string, React.CSSProperties> = {
+  page: {
+    minHeight: '100vh',
+    background: 'radial-gradient(ellipse at 60% 0%, #1A0A0A 0%, #0A0A0F 40%, #060608 100%)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontFamily: "'Inter', -apple-system, sans-serif",
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  orb1: {
+    position: 'absolute',
+    top: '-20%',
+    right: '-10%',
+    width: 700,
+    height: 700,
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(239,68,68,0.12) 0%, transparent 70%)',
+    animation: 'orbFloat1 18s ease-in-out infinite',
+    pointerEvents: 'none',
+  },
+  orb2: {
+    position: 'absolute',
+    bottom: '-25%',
+    left: '-15%',
+    width: 800,
+    height: 800,
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(239,68,68,0.07) 0%, transparent 70%)',
+    animation: 'orbFloat2 22s ease-in-out infinite',
+    pointerEvents: 'none',
+  },
+  orb3: {
+    position: 'absolute',
+    top: '40%',
+    left: '20%',
+    width: 400,
+    height: 400,
+    borderRadius: '50%',
+    background: 'radial-gradient(circle, rgba(59,130,246,0.04) 0%, transparent 70%)',
+    animation: 'orbFloat3 28s ease-in-out infinite',
+    pointerEvents: 'none',
+  },
+  noiseOverlay: {
+    position: 'absolute',
+    inset: 0,
+    opacity: 0.025,
+    backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+    backgroundRepeat: 'repeat',
+    backgroundSize: '128px',
+    pointerEvents: 'none',
+  },
+  gridOverlay: {
+    position: 'absolute',
+    inset: 0,
+    backgroundImage: `
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)
+    `,
+    backgroundSize: '64px 64px',
+    pointerEvents: 'none',
+  },
+  wrapper: {
+    position: 'relative',
+    zIndex: 10,
+    width: '100%',
+    maxWidth: 400,
+    padding: '0 20px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 32,
+  },
+  logoWrap: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 12,
+  },
+  logoImg: {
+    height: 160,
+    width: 'auto',
+    filter: 'drop-shadow(0 0 32px rgba(239,68,68,0.3)) drop-shadow(0 4px 16px rgba(0,0,0,0.5))',
+  },
+  logoSeparator: {
+    width: 40,
+    height: 1,
+    background: 'linear-gradient(90deg, transparent, rgba(239,68,68,0.5), transparent)',
+  },
+  logoSubtitle: {
+    fontSize: 11,
+    fontWeight: 500,
+    color: '#4B5563',
+    letterSpacing: '0.15em',
+    textTransform: 'uppercase' as const,
+  },
+  card: {
+    width: '100%',
+    background: 'linear-gradient(145deg, rgba(255,255,255,0.035) 0%, rgba(255,255,255,0.01) 100%)',
+    backdropFilter: 'blur(40px)',
+    WebkitBackdropFilter: 'blur(40px)',
+    border: '1px solid rgba(255,255,255,0.07)',
+    borderRadius: 24,
+    boxShadow: `
+      0 0 0 1px rgba(255,255,255,0.04),
+      0 32px 64px -16px rgba(0,0,0,0.7),
+      0 8px 32px rgba(0,0,0,0.4),
+      inset 0 1px 0 rgba(255,255,255,0.06)
+    `,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  cardTopLine: {
+    position: 'absolute',
+    top: 0,
+    left: '15%',
+    right: '15%',
+    height: 1,
+    background: 'linear-gradient(90deg, transparent, rgba(239,68,68,0.6), transparent)',
+  },
+  cardInner: {
+    padding: '40px 36px',
+  },
+  cardHeader: {
+    marginBottom: 28,
+  },
+  cardTitle: {
+    fontSize: 22,
+    fontWeight: 700,
+    color: '#FFFFFF',
+    letterSpacing: '-0.03em',
+    marginBottom: 6,
+    margin: 0,
+  },
+  cardDesc: {
+    fontSize: 13,
+    color: '#4B5563',
+    fontWeight: 400,
+    marginTop: 6,
+  },
+  errorBanner: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: 10,
+    padding: '12px 14px',
+    background: 'rgba(239,68,68,0.08)',
+    border: '1px solid rgba(239,68,68,0.25)',
+    borderRadius: 12,
+    marginBottom: 20,
+  },
+  errorText: {
+    fontSize: 13,
+    color: '#F87171',
+    lineHeight: 1.5,
+    margin: 0,
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 20,
+  },
+  fieldGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8,
+  },
+  label: {
+    fontSize: 11,
+    fontWeight: 600,
+    color: '#6B7280',
+    letterSpacing: '0.08em',
+    textTransform: 'uppercase' as const,
+  },
+  inputWrap: {
+    position: 'relative',
+  },
+  input: {
+    width: '100%',
+    padding: '14px 16px',
+    background: 'rgba(0,0,0,0.35)',
+    border: '1px solid rgba(255,255,255,0.07)',
+    borderRadius: 12,
+    color: '#F9FAFB',
+    fontSize: 14,
+    fontWeight: 400,
+    outline: 'none',
+    transition: 'border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease',
+    boxSizing: 'border-box',
+  },
+  inputFocus: {
+    borderColor: 'rgba(239,68,68,0.5)',
+    boxShadow: '0 0 0 3px rgba(239,68,68,0.08), 0 0 20px rgba(239,68,68,0.05)',
+    background: 'rgba(0,0,0,0.5)',
+  },
+  inputBlur: {
+    borderColor: 'rgba(255,255,255,0.07)',
+    boxShadow: 'none',
+    background: 'rgba(0,0,0,0.35)',
+  },
+  eyeBtn: {
+    position: 'absolute',
+    right: 14,
+    top: '50%',
+    transform: 'translateY(-50%)',
+    background: 'none',
+    border: 'none',
+    color: '#4B5563',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    padding: 4,
+    transition: 'color 0.2s ease',
+  },
+  submitBtn: {
+    width: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    padding: '15px 24px',
+    background: 'linear-gradient(135deg, #EF4444 0%, #DC2626 50%, #B91C1C 100%)',
+    border: 'none',
+    borderRadius: 12,
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 600,
+    letterSpacing: '0.01em',
+    boxShadow: '0 4px 24px rgba(239,68,68,0.3), 0 1px 4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15)',
+    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+    marginTop: 4,
+  },
+  submitBtnHover: {
+    transform: 'translateY(-2px)',
+    boxShadow: '0 8px 32px rgba(239,68,68,0.45), 0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15)',
+  },
+  btnSpinner: {
+    width: 16,
+    height: 16,
+    borderRadius: '50%',
+    border: '2px solid rgba(255,255,255,0.3)',
+    borderTopColor: '#fff',
+    animation: 'spinBtn 0.7s linear infinite',
+  },
+  footer: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    fontSize: 11,
+    color: '#2D3748',
+    fontWeight: 500,
+    letterSpacing: '0.04em',
+  },
+  footerDot: {
+    display: 'inline-block',
+    width: 6,
+    height: 6,
+    borderRadius: '50%',
+    background: '#EF4444',
+    boxShadow: '0 0 8px rgba(239,68,68,0.6)',
+  },
+  spinner: {
+    width: 32,
+    height: 32,
+    borderRadius: '50%',
+    border: '2px solid rgba(239,68,68,0.2)',
+    borderTopColor: '#EF4444',
+    animation: 'spinBtn 0.8s linear infinite',
+  },
+};
 
 export default function LoginPage() {
   return (
