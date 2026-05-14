@@ -21,7 +21,7 @@ export default function MetaAdsPage() {
           subtitle="Facebook & Instagram — campanhas, leads, criativos e performance"
         />
         <EmbedFrame
-          baseUrl="http://localhost:3001"
+          baseUrl="/dashboard-static.html"
           hash="meta-ads"
           title="Meta Ads"
         />
