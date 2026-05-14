@@ -1,7 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Facebook, RefreshCw, AlertTriangle } from 'lucide-react';
+import { RefreshCw, AlertTriangle } from 'lucide-react';
+
+const MetaIcon = ({ size = 28 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M26.438 12.38C23.013 12.38 20.316 14.155 18 16.652C15.684 14.155 12.987 12.38 9.562 12.38C4.281 12.38 0 16.661 0 21.942C0 27.223 4.281 31.504 9.562 31.504C13.593 31.504 16.897 29.288 18 25.867C19.103 29.288 22.407 31.504 26.438 31.504C31.719 31.504 36 27.223 36 21.942C36 16.661 31.719 12.38 26.438 12.38ZM9.562 26.541C7.026 26.541 4.963 24.478 4.963 21.942C4.963 19.406 7.026 17.343 9.562 17.343C12.098 17.343 14.161 19.406 14.161 21.942C14.161 24.478 12.098 26.541 9.562 26.541ZM26.438 26.541C23.902 26.541 21.839 24.478 21.839 21.942C21.839 19.406 23.902 17.343 26.438 17.343C28.974 17.343 31.037 19.406 31.037 21.942C31.037 24.478 28.974 26.541 26.438 26.541Z" fill="#0668E1"/>
+  </svg>
+);
 
 interface MetaMetrics {
   spend: number;
@@ -158,7 +164,7 @@ export default function MetaAdsDashboard() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-          <Facebook size={28} className="text-blue-500" />
+          <MetaIcon size={28} />
           Meta Ads
         </h1>
         <div className="flex gap-3">

@@ -21,7 +21,7 @@ export default function MetaAdsPage() {
           subtitle="Facebook & Instagram — campanhas, leads, criativos e performance"
         />
         <EmbedFrame
-          baseUrl="https://ab-marketing-dashboard.vercel.app"
+          baseUrl="http://localhost:3001"
           hash="meta-ads"
           title="Meta Ads"
         />
