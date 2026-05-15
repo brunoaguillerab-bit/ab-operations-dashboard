@@ -212,10 +212,10 @@ body.embedded-mode .main {
 .main {
   margin-left: var(--sidebar-w);
   width: calc(100% - var(--sidebar-w));
-  padding: 32px;
+  padding: 16px 24px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 16px;
 }
 
 header {
@@ -398,12 +398,12 @@ select:hover, .btn-secondary:hover, .custom-select:hover {
 }
 
 .kpi-card.primary {
-  padding: 16px 20px;
+  padding: 12px 16px;
   border: 1px solid var(--border-hover);
 }
 
 .kpi-card.primary .kpi-val {
-  font-size: 24px;
+  font-size: 20px;
 }
 
 .kpi-card.secondary {
@@ -1061,6 +1061,58 @@ tr:hover td {
   transition: width 1s ease-out;
 }
 
+    /* META ADS CUSTOM LAYOUT */
+    .meta-grid-top {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+    }
+    
+    .meta-middle-row {
+      display: grid;
+      grid-template-columns: 280px 1fr 320px;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .funnel-card {
+      padding: 16px;
+      height: 100%;
+    }
+
+    .funnel-svg-container {
+      height: 220px;
+    }
+
+    .charts-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      height: 100%;
+    }
+
+    .progress-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .progress-card {
+      padding: 12px;
+    }
+
+    .meta-camp-table-card {
+      max-height: 400px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .meta-camp-table-wrapper {
+      overflow-y: auto;
+      flex: 1;
+      max-height: 320px;
+    }
+
 .chart-card {
   padding: 20px;
   height: 100%;
@@ -1444,7 +1496,6 @@ tr:hover td {
         <div class="kpi-val" id="mk-cpp">R$ 0,00</div>
         <div id="mk-cpp-delta" class="kpi-delta"></div>
         <div style="height: 40px; margin-top: 8px;"><canvas id="chart-mini-cpp"></canvas></div>
-      </div>
       <div class="glass kpi-card primary goal-lead">
         <div class="kpi-label">CPL Médio <i data-lucide="zap" size="14" style="color:#f59e0b"></i></div>
         <div class="kpi-val" id="mk-cpl-val-card">R$ 0,00</div>
@@ -1454,12 +1505,12 @@ tr:hover td {
     </div>
 
     <!-- MIDDLE SECTION: FUNNEL + PROGRESS + CHARTS -->
-    <div class="meta-grid-middle staggered" style="animation-delay: 0.15s">
+    <div class="meta-middle-row staggered" style="animation-delay: 0.15s">
       <!-- FUNIL DE TRÁFEGO -->
       <div class="glass funnel-card">
         <h3 class="chart-title">Funil de Tráfego</h3>
         <div class="funnel-svg-container">
-          <svg viewBox="0 0 350 300" preserveAspectRatio="xMidYMid meet">
+          <svg viewBox="0 0 350 300" preserveAspectRatio="xMidYMid meet" style="max-height: 100%;">
             <defs>
               <linearGradient id="funnelGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
@@ -1473,56 +1524,41 @@ tr:hover td {
                 </feMerge>
               </filter>
             </defs>
-            <!-- Paths remain the same structure, but labels change -->
             <path d="M10,20 L190,20 L170,80 L30,80 Z" fill="url(#funnelGrad)" opacity="0.9" filter="url(#glow)" />
             <path d="M30,85 L170,85 L150,145 L50,145 Z" fill="url(#funnelGrad)" opacity="0.8" filter="url(#glow)" />
             <path d="M50,150 L150,150 L130,210 L70,210 Z" fill="url(#funnelGrad)" opacity="0.7" filter="url(#glow)" />
             <path d="M70,215 L130,215 L120,275 L80,275 Z" fill="url(#funnelGrad)" opacity="0.6" filter="url(#glow)" />
-            
-            <!-- Dynamic Labels inner -->
             <text x="100" y="45" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" id="funnel-label-1">Etapa 1</text>
             <text x="100" y="60" text-anchor="middle" fill="#fff" font-size="14" font-weight="800" id="funnel-val-1">0</text>
-            
             <text x="100" y="110" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" id="funnel-label-2">Etapa 2</text>
             <text x="100" y="125" text-anchor="middle" fill="#fff" font-size="14" font-weight="800" id="funnel-val-2">0</text>
-            
             <text x="100" y="175" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" id="funnel-label-3">Etapa 3</text>
-            <text x="100" y="125" text-anchor="middle" fill="#fff" font-size="14" font-weight="800" id="funnel-val-3" dy="65">0</text> <!-- fix dy -->
-            
+            <text x="100" y="190" text-anchor="middle" fill="#fff" font-size="14" font-weight="800" id="funnel-val-3">0</text>
             <text x="100" y="240" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" id="funnel-label-4">Etapa 4</text>
             <text x="100" y="255" text-anchor="middle" fill="#fff" font-size="14" font-weight="800" id="funnel-val-4">0</text>
-
-            <!-- Conversion Rates (Floating Right) -->
             <g transform="translate(210, 0)">
               <text x="0" y="50" fill="var(--text-main)" font-size="10" font-weight="700" text-anchor="start" id="rate-label-1">Taxa 1</text>
               <text x="0" y="65" fill="var(--text-muted)" font-size="12" font-weight="800" id="rate-val-1">0,00%</text>
-              
               <text x="0" y="115" fill="var(--text-main)" font-size="10" font-weight="700" text-anchor="start" id="rate-label-2">Taxa 2</text>
               <text x="0" y="130" fill="var(--text-muted)" font-size="12" font-weight="800" id="rate-val-2">0,00%</text>
-              
               <text x="0" y="180" fill="var(--text-main)" font-size="10" font-weight="700" text-anchor="start" id="rate-label-3">Taxa 3</text>
               <text x="0" y="195" fill="var(--text-muted)" font-size="12" font-weight="800" id="rate-val-3">0,00%</text>
-              
               <text x="0" y="245" fill="var(--text-main)" font-size="10" font-weight="700" text-anchor="start" id="rate-label-4">Taxa 4</text>
               <text x="0" y="260" fill="var(--text-muted)" font-size="12" font-weight="800" id="rate-val-4">0,00%</text>
             </g>
           </svg>
         </div>
+      </div>
 
-        <!-- SMALL BOTTOM KPIs -->
-        <div class="meta-kpi-small">
-          <div class="small-kpi-card">
-            <div class="small-kpi-label">Add to Cart</div>
-            <div class="small-kpi-val" id="mk-atc">0</div>
-          </div>
-          <div class="small-kpi-card">
-            <div class="small-kpi-label">Frequência</div>
-            <div class="small-kpi-val" id="mk-freq">0x</div>
-          </div>
-          <div class="small-kpi-card">
-            <div class="small-kpi-label">CPM</div>
-            <div class="small-kpi-val" id="mk-cpm-val">R$ 0,00</div>
-          </div>
+      <!-- CHARTS SECTION -->
+      <div class="charts-container">
+        <div class="glass chart-card" style="padding: 12px;">
+          <h3 class="chart-title" style="margin-bottom: 8px;"><i data-lucide="line-chart" size="14"></i> Faturamento vs Compras</h3>
+          <div style="height: 120px;"><canvas id="chart-rev-pur"></canvas></div>
+        </div>
+        <div class="glass chart-card" style="padding: 12px;">
+          <h3 class="chart-title" style="margin-bottom: 8px;"><i data-lucide="pie-chart" size="14"></i> Melhores Anúncios (Conversões)</h3>
+          <div style="height: 120px;"><canvas id="chart-best-ads"></canvas></div>
         </div>
       </div>
 
@@ -1530,57 +1566,46 @@ tr:hover td {
       <div class="progress-container">
         <div class="glass progress-card goal-sales">
           <div style="display:flex; justify-content:space-between; align-items:center">
-            <div style="font-size:12px; color:var(--text-muted); font-weight:600">Checkouts Iniciados</div>
-            <div style="font-size:11px; color:var(--primary); font-weight:700" id="checkout-progress-pct">0%</div>
+            <div style="font-size:11px; color:var(--text-muted); font-weight:600">Checkouts</div>
+            <div style="font-size:10px; color:var(--primary); font-weight:700" id="checkout-progress-pct">0%</div>
           </div>
-          <div style="font-size:24px; font-weight:800; margin-top:8px" id="mk-checkouts">0</div>
-          <div class="progress-bar-bg"><div class="progress-bar-fill" id="checkout-progress-bar"></div></div>
+          <div style="font-size:20px; font-weight:800; margin-top:4px" id="mk-checkouts">0</div>
+          <div class="progress-bar-bg" style="height:4px; margin-top:6px"><div class="progress-bar-fill" id="checkout-progress-bar"></div></div>
         </div>
         
         <div class="glass progress-card goal-sales">
           <div style="display:flex; justify-content:space-between; align-items:center">
-            <div style="font-size:12px; color:var(--text-muted); font-weight:600">Custo por Checkout</div>
-            <div style="font-size:11px; color:var(--warning); font-weight:700" id="cpcheckout-progress-pct">0%</div>
+            <div style="font-size:11px; color:var(--text-muted); font-weight:600">Custo Checkout</div>
+            <div style="font-size:10px; color:var(--warning); font-weight:700" id="cpcheckout-progress-pct">0%</div>
           </div>
-          <div style="font-size:24px; font-weight:800; margin-top:8px" id="mk-cpcheckout">R$ 0,00</div>
-          <div class="progress-bar-bg"><div class="progress-bar-fill" id="cpcheckout-progress-bar" style="background:var(--warning)"></div></div>
+          <div style="font-size:20px; font-weight:800; margin-top:4px" id="mk-cpcheckout">R$ 0,00</div>
+          <div class="progress-bar-bg" style="height:4px; margin-top:6px"><div class="progress-bar-fill" id="cpcheckout-progress-bar" style="background:var(--warning)"></div></div>
         </div>
 
         <div class="glass progress-card goal-lead">
           <div style="display:flex; justify-content:space-between; align-items:center">
-            <div style="font-size:12px; color:var(--text-muted); font-weight:600">Mensagens WhatsApp</div>
-            <div style="font-size:11px; color:var(--info); font-weight:700" id="msg-progress-pct">0%</div>
+            <div style="font-size:11px; color:var(--text-muted); font-weight:600">WhatsApp</div>
+            <div style="font-size:10px; color:var(--info); font-weight:700" id="msg-progress-pct">0%</div>
           </div>
-          <div style="font-size:24px; font-weight:800; margin-top:8px" id="mk-msgs-val">0</div>
-          <div class="progress-bar-bg"><div class="progress-bar-fill" id="msg-progress-bar" style="background:var(--info)"></div></div>
+          <div style="font-size:20px; font-weight:800; margin-top:4px" id="mk-msgs-val">0</div>
+          <div class="progress-bar-bg" style="height:4px; margin-top:6px"><div class="progress-bar-fill" id="msg-progress-bar" style="background:var(--info)"></div></div>
         </div>
-
-        <div class="glass progress-card" style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center">
-          <i data-lucide="zap" size="32" style="color:var(--primary); margin-bottom:12px"></i>
-          <div style="font-size:13px; color:var(--text-muted); line-height:1.4">Otimize suas campanhas focando no Connect Rate e na taxa de checkout.</div>
-        </div>
-      </div>
-
-      <!-- CHARTS -->
-      <div style="display:flex; flex-direction:column; gap:24px">
-        <div class="glass chart-card" style="flex:1.5">
-          <h3 class="chart-title"><i data-lucide="line-chart" size="16"></i> Faturamento vs Compras</h3>
-          <div style="flex:1; min-height:150px"><canvas id="chart-rev-pur"></canvas></div>
-        </div>
-        <div class="glass chart-card" style="flex:1">
-          <h3 class="chart-title"><i data-lucide="pie-chart" size="16"></i> Melhores Anúncios (Conversões)</h3>
-          <div class="donut-container"><canvas id="chart-best-ads"></canvas></div>
+        
+        <!-- COMPACT BOTTOM KPIs -->
+        <div class="glass" style="padding:10px; display:grid; grid-template-columns:1fr 1fr; gap:8px">
+          <div><div style="font-size:10px; color:var(--text-dim)">Add to Cart</div><div style="font-size:13px; font-weight:700" id="mk-atc">0</div></div>
+          <div><div style="font-size:10px; color:var(--text-dim)">Frequência</div><div style="font-size:13px; font-weight:700" id="mk-freq">0x</div></div>
         </div>
       </div>
     </div>
 
     <!-- TABELAS -->
-    <div class="glass card-table staggered" style="animation-delay: 0.2s">
-      <div class="card-header">
-        <h3><i data-lucide="layers" size="16" style="color:var(--primary)"></i> Campanhas Meta Ads</h3>
+    <div class="glass meta-camp-table-card staggered" style="animation-delay: 0.2s">
+      <div class="card-header" style="padding: 12px 20px;">
+        <h3 style="font-size: 14px;"><i data-lucide="layers" size="14" style="color:var(--primary)"></i> Campanhas Meta Ads</h3>
         <div id="meta-loading" style="display:none"><div class="spinner"></div></div>
       </div>
-      <div id="mt-camps" class="table-responsive">
+      <div id="mt-camps" class="meta-camp-table-wrapper">
         <table class="camp-table">
           <thead>
             <tr>
