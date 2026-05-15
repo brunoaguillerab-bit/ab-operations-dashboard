@@ -105,6 +105,13 @@ body {
   box-shadow: var(--shadow-lg);
 }
 
+/* GOAL TYPES SYSTEM */
+body[data-goal="LEAD_GENERATION"] .goal-sales { display: none !important; }
+body[data-goal="SALES_ECOMMERCE"] .goal-lead { display: none !important; }
+/* HYBRID shows both */
+
+.goal-hidden { display: none !important; }
+
 /* SIDEBAR */
 .sidebar {
   width: var(--sidebar-w);
@@ -986,6 +993,124 @@ tr:hover td {
 .cell-alert { color: var(--primary); font-weight: 700; }
 .op-actions button { background: none; border: none; color: var(--text-dim); cursor: pointer; padding: 4px; border-radius: 4px; }
 .op-actions button:hover { color: var(--text-main); background: rgba(255,255,255,0.1); }
+
+/* NEW META ADS DASHBOARD STYLES */
+.meta-grid-top {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.meta-grid-middle {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.5fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.funnel-card {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.funnel-svg-container {
+  width: 100%;
+  max-width: 280px;
+  position: relative;
+}
+
+.funnel-step-label {
+  position: absolute;
+  right: -100px;
+  text-align: left;
+  width: 120px;
+}
+
+.progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.progress-card {
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary), #f87171);
+  border-radius: 6px;
+  width: 0;
+  transition: width 1s ease-out;
+}
+
+.chart-card {
+  padding: 20px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.donut-container {
+  height: 180px;
+  position: relative;
+}
+
+.meta-kpi-small {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 24px;
+  width: 100%;
+}
+
+.small-kpi-card {
+  padding: 12px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.small-kpi-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.small-kpi-val {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+}
 </style>
 </head>
 <body>
@@ -1098,6 +1223,21 @@ tr:hover td {
       <button class="btn-secondary" onclick="createRipple(event); reloadData()" style="gap:8px; padding:8px 12px" title="Atualizar Dados">
         <i data-lucide="refresh-cw" size="14"></i>
       </button>
+
+      <div class="custom-select" id="goal-type-container" style="display:none; min-width:180px">
+        <div class="select-trigger" onclick="toggleGoalSelect()">
+          <i data-lucide="target" size="14" style="color:var(--primary)"></i>
+          <span id="selected-goal-text">Híbrido</span>
+          <i data-lucide="chevron-down" size="14"></i>
+        </div>
+        <div class="select-options-container" id="goal-options-container">
+          <div class="options-list">
+            <div class="option-item" onclick="selectGoal('LEAD_GENERATION', 'Geração de Leads')">Geração de Leads</div>
+            <div class="option-item" onclick="selectGoal('SALES_ECOMMERCE', 'Vendas / E-commerce')">Vendas / E-commerce</div>
+            <div class="option-item selected" onclick="selectGoal('HYBRID', 'Híbrido')">Híbrido</div>
+          </div>
+        </div>
+      </div>
 
       <button class="btn-red" onclick="createRipple(event); exportWhatsApp()">
         <i data-lucide="share-2" size="14"></i> Exportar
@@ -1267,59 +1407,177 @@ tr:hover td {
 
   <!-- META ADS -->
   <div id="view-meta" class="view">
-    <!-- KPIs PRINCIPAIS -->
-    <div class="kpi-strip staggered" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); animation-delay: 0.1s">
+    <!-- KPIs PRINCIPAIS (LOOKER STYLE) -->
+    <div class="meta-grid-top staggered" style="animation-delay: 0.1s">
       <div class="glass kpi-card primary">
         <div class="kpi-label">Investimento <i data-lucide="facebook" size="14" style="color:#0668E1"></i></div>
         <div class="kpi-val" id="mk-spend">R$ 0,00</div>
         <div id="mk-spend-delta" class="kpi-delta"></div>
-        <canvas id="mk-spend-sparkline" class="sparkline"></canvas>
+        <div style="height: 40px; margin-top: 8px;"><canvas id="chart-mini-spend"></canvas></div>
       </div>
-      <div class="glass kpi-card primary">
+      <div class="glass kpi-card primary goal-sales">
+        <div class="kpi-label">Faturamento <i data-lucide="dollar-sign" size="14" style="color:#10b981"></i></div>
+        <div class="kpi-val" id="mk-revenue">R$ 0,00</div>
+        <div id="mk-revenue-delta" class="kpi-delta"></div>
+        <div style="height: 40px; margin-top: 8px;"><canvas id="chart-mini-revenue"></canvas></div>
+      </div>
+      <div class="glass kpi-card primary goal-lead">
         <div class="kpi-label">Leads <i data-lucide="user-check" size="14" style="color:#10b981"></i></div>
         <div class="kpi-val" id="mk-leads">0</div>
         <div id="mk-leads-delta" class="kpi-delta"></div>
-        <canvas id="mk-leads-sparkline" class="sparkline"></canvas>
+        <div style="height: 40px; margin-top: 8px;"><canvas id="chart-mini-leads"></canvas></div>
       </div>
-      <div class="glass kpi-card primary">
-        <div class="kpi-label">CPL <i data-lucide="zap" size="14" style="color:#f59e0b"></i></div>
-        <div class="kpi-val" id="mk-cpl">—</div>
-        <div id="mk-cpl-delta" class="kpi-delta"></div>
-      </div>
-      <div class="glass kpi-card primary">
-        <div class="kpi-label">Compras <i data-lucide="shopping-cart" size="14" style="color:#ef4444"></i></div>
+      <div class="glass kpi-card primary goal-sales">
+        <div class="kpi-label">Compras <i data-lucide="shopping-bag" size="14" style="color:#3b82f6"></i></div>
         <div class="kpi-val" id="mk-purchases">0</div>
         <div id="mk-purchases-delta" class="kpi-delta"></div>
-        <canvas id="mk-purchases-sparkline" class="sparkline"></canvas>
+        <div style="height: 40px; margin-top: 8px;"><canvas id="chart-mini-purchases"></canvas></div>
+      </div>
+      <div class="glass kpi-card primary goal-sales">
+        <div class="kpi-label">ROAS Médio <i data-lucide="trending-up" size="14" style="color:#a855f7"></i></div>
+        <div class="kpi-val" id="mk-roas">0,00</div>
+        <div id="mk-roas-delta" class="kpi-delta"></div>
+        <div style="height: 40px; margin-top: 8px;"><canvas id="chart-mini-roas"></canvas></div>
+      </div>
+      <div class="glass kpi-card primary goal-sales">
+        <div class="kpi-label">CPA Médio <i data-lucide="zap" size="14" style="color:#f59e0b"></i></div>
+        <div class="kpi-val" id="mk-cpp">R$ 0,00</div>
+        <div id="mk-cpp-delta" class="kpi-delta"></div>
+        <div style="height: 40px; margin-top: 8px;"><canvas id="chart-mini-cpp"></canvas></div>
+      </div>
+      <div class="glass kpi-card primary goal-lead">
+        <div class="kpi-label">CPL Médio <i data-lucide="zap" size="14" style="color:#f59e0b"></i></div>
+        <div class="kpi-val" id="mk-cpl-val-card">R$ 0,00</div>
+        <div id="mk-cpl-delta" class="kpi-delta"></div>
+        <div style="height: 40px; margin-top: 8px;"><canvas id="chart-mini-cpl"></canvas></div>
       </div>
     </div>
 
-    <!-- KPIs SECUNDÁRIOS -->
-    <div class="kpi-strip staggered" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); animation-delay: 0.15s; opacity: 0.8">
-      <div class="glass kpi-card secondary">
-        <div class="kpi-label">Msgs WhatsApp</div>
-        <div class="kpi-val" id="mk-msgs">0</div>
-        <div id="mk-msgs-delta" class="kpi-delta"></div>
+    <!-- MIDDLE SECTION: FUNNEL + PROGRESS + CHARTS -->
+    <div class="meta-grid-middle staggered" style="animation-delay: 0.15s">
+      <!-- FUNIL DE TRÁFEGO -->
+      <div class="glass funnel-card">
+        <h3 class="chart-title">Funil de Tráfego</h3>
+        <div class="funnel-svg-container">
+          <svg viewBox="0 0 350 300" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <linearGradient id="funnelGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
+              </linearGradient>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            <!-- Paths remain the same structure, but labels change -->
+            <path d="M10,20 L190,20 L170,80 L30,80 Z" fill="url(#funnelGrad)" opacity="0.9" filter="url(#glow)" />
+            <path d="M30,85 L170,85 L150,145 L50,145 Z" fill="url(#funnelGrad)" opacity="0.8" filter="url(#glow)" />
+            <path d="M50,150 L150,150 L130,210 L70,210 Z" fill="url(#funnelGrad)" opacity="0.7" filter="url(#glow)" />
+            <path d="M70,215 L130,215 L120,275 L80,275 Z" fill="url(#funnelGrad)" opacity="0.6" filter="url(#glow)" />
+            
+            <!-- Dynamic Labels inner -->
+            <text x="100" y="45" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" id="funnel-label-1">Etapa 1</text>
+            <text x="100" y="60" text-anchor="middle" fill="#fff" font-size="14" font-weight="800" id="funnel-val-1">0</text>
+            
+            <text x="100" y="110" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" id="funnel-label-2">Etapa 2</text>
+            <text x="100" y="125" text-anchor="middle" fill="#fff" font-size="14" font-weight="800" id="funnel-val-2">0</text>
+            
+            <text x="100" y="175" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" id="funnel-label-3">Etapa 3</text>
+            <text x="100" y="125" text-anchor="middle" fill="#fff" font-size="14" font-weight="800" id="funnel-val-3" dy="65">0</text> <!-- fix dy -->
+            
+            <text x="100" y="240" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" id="funnel-label-4">Etapa 4</text>
+            <text x="100" y="255" text-anchor="middle" fill="#fff" font-size="14" font-weight="800" id="funnel-val-4">0</text>
+
+            <!-- Conversion Rates (Floating Right) -->
+            <g transform="translate(210, 0)">
+              <text x="0" y="50" fill="var(--text-main)" font-size="10" font-weight="700" text-anchor="start" id="rate-label-1">Taxa 1</text>
+              <text x="0" y="65" fill="var(--text-muted)" font-size="12" font-weight="800" id="rate-val-1">0,00%</text>
+              
+              <text x="0" y="115" fill="var(--text-main)" font-size="10" font-weight="700" text-anchor="start" id="rate-label-2">Taxa 2</text>
+              <text x="0" y="130" fill="var(--text-muted)" font-size="12" font-weight="800" id="rate-val-2">0,00%</text>
+              
+              <text x="0" y="180" fill="var(--text-main)" font-size="10" font-weight="700" text-anchor="start" id="rate-label-3">Taxa 3</text>
+              <text x="0" y="195" fill="var(--text-muted)" font-size="12" font-weight="800" id="rate-val-3">0,00%</text>
+              
+              <text x="0" y="245" fill="var(--text-main)" font-size="10" font-weight="700" text-anchor="start" id="rate-label-4">Taxa 4</text>
+              <text x="0" y="260" fill="var(--text-muted)" font-size="12" font-weight="800" id="rate-val-4">0,00%</text>
+            </g>
+          </svg>
+        </div>
+
+        <!-- SMALL BOTTOM KPIs -->
+        <div class="meta-kpi-small">
+          <div class="small-kpi-card">
+            <div class="small-kpi-label">Add to Cart</div>
+            <div class="small-kpi-val" id="mk-atc">0</div>
+          </div>
+          <div class="small-kpi-card">
+            <div class="small-kpi-label">Frequência</div>
+            <div class="small-kpi-val" id="mk-freq">0x</div>
+          </div>
+          <div class="small-kpi-card">
+            <div class="small-kpi-label">CPM</div>
+            <div class="small-kpi-val" id="mk-cpm-val">R$ 0,00</div>
+          </div>
+        </div>
       </div>
-      <div class="glass kpi-card secondary">
-        <div class="kpi-label">CTR</div>
-        <div class="kpi-val" id="mk-ctr">0%</div>
+
+      <!-- PROGRESS CARDS -->
+      <div class="progress-container">
+        <div class="glass progress-card goal-sales">
+          <div style="display:flex; justify-content:space-between; align-items:center">
+            <div style="font-size:12px; color:var(--text-muted); font-weight:600">Checkouts Iniciados</div>
+            <div style="font-size:11px; color:var(--primary); font-weight:700" id="checkout-progress-pct">0%</div>
+          </div>
+          <div style="font-size:24px; font-weight:800; margin-top:8px" id="mk-checkouts">0</div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" id="checkout-progress-bar"></div></div>
+        </div>
+        
+        <div class="glass progress-card goal-sales">
+          <div style="display:flex; justify-content:space-between; align-items:center">
+            <div style="font-size:12px; color:var(--text-muted); font-weight:600">Custo por Checkout</div>
+            <div style="font-size:11px; color:var(--warning); font-weight:700" id="cpcheckout-progress-pct">0%</div>
+          </div>
+          <div style="font-size:24px; font-weight:800; margin-top:8px" id="mk-cpcheckout">R$ 0,00</div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" id="cpcheckout-progress-bar" style="background:var(--warning)"></div></div>
+        </div>
+
+        <div class="glass progress-card goal-lead">
+          <div style="display:flex; justify-content:space-between; align-items:center">
+            <div style="font-size:12px; color:var(--text-muted); font-weight:600">Mensagens WhatsApp</div>
+            <div style="font-size:11px; color:var(--info); font-weight:700" id="msg-progress-pct">0%</div>
+          </div>
+          <div style="font-size:24px; font-weight:800; margin-top:8px" id="mk-msgs-val">0</div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" id="msg-progress-bar" style="background:var(--info)"></div></div>
+        </div>
+
+        <div class="glass progress-card" style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center">
+          <i data-lucide="zap" size="32" style="color:var(--primary); margin-bottom:12px"></i>
+          <div style="font-size:13px; color:var(--text-muted); line-height:1.4">Otimize suas campanhas focando no Connect Rate e na taxa de checkout.</div>
+        </div>
       </div>
-      <div class="glass kpi-card secondary">
-        <div class="kpi-label">CPM</div>
-        <div class="kpi-val" id="mk-cpm">R$ 0</div>
-      </div>
-      <div class="glass kpi-card secondary">
-        <div class="kpi-label">Frequência</div>
-        <div class="kpi-val" id="mk-freq">0x</div>
+
+      <!-- CHARTS -->
+      <div style="display:flex; flex-direction:column; gap:24px">
+        <div class="glass chart-card" style="flex:1.5">
+          <h3 class="chart-title"><i data-lucide="line-chart" size="16"></i> Faturamento vs Compras</h3>
+          <div style="flex:1; min-height:150px"><canvas id="chart-rev-pur"></canvas></div>
+        </div>
+        <div class="glass chart-card" style="flex:1">
+          <h3 class="chart-title"><i data-lucide="pie-chart" size="16"></i> Melhores Anúncios (Conversões)</h3>
+          <div class="donut-container"><canvas id="chart-best-ads"></canvas></div>
+        </div>
       </div>
     </div>
 
-    <!-- FUNNEL & CHART REMOVED PER USER REQUEST -->
-
-    <div class="glass card-table">
+    <!-- TABELAS -->
+    <div class="glass card-table staggered" style="animation-delay: 0.2s">
       <div class="card-header">
-        <h3><i data-lucide="bar-chart-2" size="16" style="color:var(--primary)"></i> Campanhas Meta Ads</h3>
+        <h3><i data-lucide="layers" size="16" style="color:var(--primary)"></i> Campanhas Meta Ads</h3>
         <div id="meta-loading" style="display:none"><div class="spinner"></div></div>
       </div>
       <div id="mt-camps" class="table-responsive">
@@ -1328,43 +1586,17 @@ tr:hover td {
             <tr>
               <th onclick="sortMetaTable('name')" style="cursor:pointer;min-width:200px">Campanha <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
               <th onclick="sortMetaTable('spend')" style="cursor:pointer">Investimento <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
-              <th onclick="sortMetaTable('leads')" style="cursor:pointer">Leads <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
-              <th onclick="sortMetaTable('cpl')" style="cursor:pointer">CPL <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
-              <th onclick="sortMetaTable('msgs')" style="cursor:pointer">Msgs WA <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
-              <th onclick="sortMetaTable('cpmsg')" style="cursor:pointer">Custo/Msg <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
-              <th onclick="sortMetaTable('purchases')" style="cursor:pointer">Compras <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
-              <th onclick="sortMetaTable('cppurchase')" style="cursor:pointer">Custo/Compra <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
-              <th onclick="sortMetaTable('imp')" style="cursor:pointer">Impressões <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
-              <th onclick="sortMetaTable('clicks')" style="cursor:pointer">Cliques <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
+              <th onclick="sortMetaTable('rev')" style="cursor:pointer" class="goal-sales">Faturamento <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
+              <th onclick="sortMetaTable('purchases')" style="cursor:pointer" class="goal-sales">Compras <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
+              <th onclick="sortMetaTable('cpp')" style="cursor:pointer" class="goal-sales">CPA <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
+              <th onclick="sortMetaTable('roas')" style="cursor:pointer" class="goal-sales">ROAS <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
+              <th onclick="sortMetaTable('leads')" style="cursor:pointer" class="goal-lead">Leads <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
+              <th onclick="sortMetaTable('cpl')" style="cursor:pointer" class="goal-lead">CPL <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
+              <th onclick="sortMetaTable('msgs')" style="cursor:pointer" class="goal-lead">Msgs WA <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
               <th onclick="sortMetaTable('ctr')" style="cursor:pointer">CTR <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
-              <th onclick="sortMetaTable('cpm')" style="cursor:pointer">CPM <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
             </tr>
           </thead>
           <tbody id="meta-camp-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-    <div class="glass card-table" style="margin-top:24px">
-      <div class="card-header">
-        <h3><i data-lucide="image" size="16" style="color:var(--primary)"></i> Criativos Meta Ads</h3>
-      </div>
-      <div id="mt-ads" class="table-responsive">
-        <table class="camp-table">
-          <thead>
-            <tr>
-              <th onclick="sortMetaAdsTable('name')" style="cursor:pointer;min-width:200px">Criativo <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
-              <th onclick="sortMetaAdsTable('spend')" style="cursor:pointer">Investimento <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
-              <th onclick="sortMetaAdsTable('freq')" style="cursor:pointer">Frequência <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
-              <th onclick="sortMetaAdsTable('leads')" style="cursor:pointer">Leads <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
-              <th onclick="sortMetaAdsTable('cpl')" style="cursor:pointer">CPL <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
-              <th onclick="sortMetaAdsTable('msgs')" style="cursor:pointer">Msgs WA <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
-              <th onclick="sortMetaAdsTable('cpmsg')" style="cursor:pointer">Custo/Msg <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
-              <th onclick="sortMetaAdsTable('purchases')" style="cursor:pointer">Compras <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
-              <th onclick="sortMetaAdsTable('cppurchase')" style="cursor:pointer">Custo/Compra <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
-              <th onclick="sortMetaAdsTable('ctr')" style="cursor:pointer">CTR <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
-            </tr>
-          </thead>
-          <tbody id="meta-ads-tbody"></tbody>
         </table>
       </div>
     </div>
@@ -1516,7 +1748,7 @@ tr:hover td {
 <script>
 lucide.createIcons();
 
-const WINDSOR_BASE = 'https://connectors.windsor.ai/all?api_key=d9f7d79cb45782770ad6eae3607377e0509a&fields=account_name,campaign,ad_name,date,clicks,datasource,source,spend,roas,conversions,purchases,leads,all_conversions,conversions_value,complete_registration,registrations,add_to_cart,cost_per_conversion,cost,keyword,search_term,impressions,reach,results,cost_per_result,actions_total,action_values_total,actions_lead,actions_offsite_conversion_fb_pixel_lead,actions_onsite_conversion_messaging_conversation_started_7d,actions_offsite_conversion_fb_pixel_purchase,cost_per_action_type_lead,cost_per_action_type_offsite_conversion_fb_pixel_lead,cost_per_action_type_onsite_conversion_messaging_conversation_started_7d,cost_per_action_type_offsite_conversion_fb_pixel_purchase';
+const WINDSOR_BASE = 'https://connectors.windsor.ai/all?api_key=d9f7d79cb45782770ad6eae3607377e0509a&fields=account_name,campaign,ad_name,date,clicks,datasource,source,spend,roas,conversions,purchases,leads,all_conversions,conversions_value,complete_registration,registrations,add_to_cart,cost_per_conversion,cost,keyword,search_term,impressions,reach,results,cost_per_result,actions_total,action_values_total,actions_lead,actions_offsite_conversion_fb_pixel_lead,actions_onsite_conversion_messaging_conversation_started_7d,actions_offsite_conversion_fb_pixel_purchase,cost_per_action_type_lead,cost_per_action_type_offsite_conversion_fb_pixel_lead,cost_per_action_type_onsite_conversion_messaging_conversation_started_7d,cost_per_action_type_offsite_conversion_fb_pixel_purchase,actions_offsite_conversion_fb_pixel_initiate_checkout,actions_offsite_conversion_fb_pixel_view_content,actions_offsite_conversion_fb_pixel_add_to_cart,cost_per_action_type_offsite_conversion_fb_pixel_initiate_checkout,cost_per_action_type_offsite_conversion_fb_pixel_view_content,cost_per_action_type_offsite_conversion_fb_pixel_add_to_cart';
 
 const fmt = v => new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
 const fmtn = v => (v||0).toLocaleString('pt-BR',{maximumFractionDigits:1});
@@ -1585,6 +1817,35 @@ let gSortDir = 'desc';
 let stSortKey = 'spend';
 let stSortDir = 'desc';
 let sparkCharts = {};
+
+// CLIENT GOALS CONFIG
+let clientConfigs = JSON.parse(localStorage.getItem('ab_client_configs') || '{}');
+
+function toggleGoalSelect() {
+  const container = document.getElementById('goal-options-container');
+  const isActive = container.classList.contains('active');
+  document.querySelectorAll('.select-options-container').forEach(el => el.classList.remove('active'));
+  if (!isActive) container.classList.add('active');
+}
+
+function selectGoal(type, label) {
+  const client = document.getElementById('client-select').value;
+  if (!client || client === '__all__') return;
+  
+  clientConfigs[client] = type;
+  localStorage.setItem('ab_client_configs', JSON.stringify(clientConfigs));
+  
+  document.getElementById('selected-goal-text').textContent = label;
+  document.getElementById('goal-options-container').classList.remove('active');
+  
+  applyGoalToUI(type);
+  renderAll(client);
+  showToast(`Objetivo atualizado: ${label}`);
+}
+
+function applyGoalToUI(type) {
+  document.body.setAttribute('data-goal', type);
+}
 
 function setStatus(ok) {
   const el = document.getElementById('api-status');
@@ -1686,7 +1947,7 @@ async function reloadData() {
   const { curFrom, curTo, prevFrom, prevTo } = getDateRange(period);
 
   const fDate = d => d.toISOString().slice(0,10);
-  const PROXY = '';
+  const PROXY  = (window.location.port === '3001') ? 'http://localhost:3000' : '';
   const client = (document.getElementById('client-select').value || '__all__');
   const clientParam = client !== '__all__' ? `&client=${encodeURIComponent(client)}` : '';
   // fallback=1 → se hoje sem dados, proxy repete automaticamente com ontem
@@ -1837,12 +2098,28 @@ function selectOption(val) {
   displayText.textContent = val === '__all__' ? 'Todos os Clientes' : val;
 
   document.querySelectorAll('.option-item').forEach(item => {
-    item.classList.toggle('selected', item.textContent === (val === '__all__' ? 'Todos os Clientes' : val));
+    item.textContent === (val === '__all__' ? 'Todos os Clientes' : val) ? item.classList.add('selected') : item.classList.remove('selected');
   });
 
   container.classList.remove('active');
 
-  // Sempre recarrega ao trocar cliente — proxy filtra pelas contas do cliente selecionado
+  // GOAL TYPE SELECTOR VISIBILITY
+  const goalContainer = document.getElementById('goal-type-container');
+  if (val === '__all__') {
+    goalContainer.style.display = 'none';
+    applyGoalToUI('HYBRID');
+  } else {
+    goalContainer.style.display = 'flex';
+    const currentGoal = clientConfigs[val] || 'HYBRID';
+    const goalLabels = {
+      'LEAD_GENERATION': 'Geração de Leads',
+      'SALES_ECOMMERCE': 'Vendas / E-commerce',
+      'HYBRID': 'Híbrido'
+    };
+    document.getElementById('selected-goal-text').textContent = goalLabels[currentGoal];
+    applyGoalToUI(currentGoal);
+  }
+
   reloadData();
 }
 
@@ -1853,6 +2130,9 @@ window.addEventListener('click', function(e) {
   }
   if (!document.getElementById('date-custom-select').contains(e.target)) {
     document.getElementById('date-options-container').classList.remove('active');
+  }
+  if (document.getElementById('goal-type-container') && !document.getElementById('goal-type-container').contains(e.target)) {
+    document.getElementById('goal-options-container').classList.remove('active');
   }
 });
 
@@ -2127,179 +2407,258 @@ function renderMeta(filter) {
     return (src.includes('facebook')||src.includes('meta')) && (filter==='__all__' || r.account_name===filter);
   });
 
-  // Totais — cada tipo de resultado é contado SEPARADAMENTE
-  let spend=0, clicks=0, imp=0;
-  let totalLeads=0, totalMsgs=0, totalPurchases=0;
+  const currentGoal = (filter === '__all__') ? 'HYBRID' : (clientConfigs[filter] || 'HYBRID');
+
+  // Totais
+  let spend=0, clicks=0, imp=0, revenue=0, views=0, checkouts=0, purchases=0, atc=0, reach=0;
+  let leads=0, msgs=0;
   const campMap = {};
-  const adMap = {};
+  const dailyData = {}; 
 
   metaRaw.forEach(r => {
-    // Métricas base
     const s   = parseFloat(r.spend||0);
     const cl  = parseInt(r.clicks||0);
     const im  = parseInt(r.impressions||0);
-    const reach = parseInt(r.reach||0);
+    const re  = parseFloat(r.conversions_value||r.action_values_total||0);
+    const v   = parseFloat(r.actions_offsite_conversion_fb_pixel_view_content||0);
+    const ch  = parseFloat(r.actions_offsite_conversion_fb_pixel_initiate_checkout||0);
+    const pu  = parseFloat(r.actions_offsite_conversion_fb_pixel_purchase||r.purchases||0);
+    const at  = parseFloat(r.actions_offsite_conversion_fb_pixel_add_to_cart||r.add_to_cart||0);
+    const rch = parseInt(r.reach||0);
+    const ld  = parseFloat(r.actions_lead||r.leads||0);
+    const msg = parseFloat(r.actions_onsite_conversion_messaging_conversation_started_7d||0);
 
-    // Resultados granulares — NUNCA somar tipos diferentes
-    const leads     = parseFloat(r.actions_lead||0);
-    const msgs      = parseFloat(r.actions_onsite_conversion_messaging_conversation_started_7d||0);
-    const purchases = parseFloat(r.actions_offsite_conversion_fb_pixel_purchase||0);
+    spend += s; clicks += cl; imp += im; revenue += re; views += v; checkouts += ch; purchases += pu; atc += at; reach += rch; leads += ld; msgs += msg;
 
-    spend     += s;
-    clicks    += cl;
-    imp       += im;
-    totalLeads     += leads;
-    totalMsgs      += msgs;
-    totalPurchases += purchases;
+    const d = r.date;
+    if (!dailyData[d]) dailyData[d] = {rev:0, pur:0, spend:0, leads:0, msgs:0};
+    dailyData[d].rev += re;
+    dailyData[d].pur += pu;
+    dailyData[d].spend += s;
+    dailyData[d].leads += ld;
+    dailyData[d].msgs += msg;
 
     const cName = r.campaign || '–';
-    if (!campMap[cName]) campMap[cName] = {
-      name: cName, acc: r.account_name,
-      spend:0, clicks:0, imp:0,
-      leads:0, msgs:0, purchases:0
-    };
-    campMap[cName].spend     += s;
-    campMap[cName].clicks    += cl;
-    campMap[cName].imp       += im;
-    campMap[cName].leads     += leads;
-    campMap[cName].msgs      += msgs;
-    campMap[cName].purchases += purchases;
-
-    const aName = r.ad_name || '–';
-    if (!adMap[aName]) adMap[aName] = {
-      name: aName,
-      spend:0, clicks:0, imp:0, reach:0,
-      leads:0, msgs:0, purchases:0
-    };
-    adMap[aName].spend     += s;
-    adMap[aName].clicks    += cl;
-    adMap[aName].imp       += im;
-    adMap[aName].reach     += reach;
-    adMap[aName].leads     += leads;
-    adMap[aName].msgs      += msgs;
-    adMap[aName].purchases += purchases;
+    if (!campMap[cName]) campMap[cName] = {name:cName, spend:0, clicks:0, imp:0, rev:0, purchases:0, leads:0, msgs:0};
+    campMap[cName].spend += s;
+    campMap[cName].clicks += cl;
+    campMap[cName].imp += im;
+    campMap[cName].rev += re;
+    campMap[cName].purchases += pu;
+    campMap[cName].leads += ld;
+    campMap[cName].msgs += msg;
   });
 
-  // CPx calculado no total: investimento / resultado (NUNCA somando custo linha a linha)
-  const cpl        = totalLeads     > 0 ? spend / totalLeads     : 0;
-  const cpMsg      = totalMsgs      > 0 ? spend / totalMsgs      : 0;
-  const cpPurchase = totalPurchases > 0 ? spend / totalPurchases : 0;
-  const ctr        = imp > 0 ? (clicks / imp * 100) : 0;
-  const cpm        = imp > 0 ? (spend / imp * 1000) : 0;
+  const roas = spend > 0 ? revenue / spend : 0;
+  const cpp = purchases > 0 ? spend / purchases : 0;
+  const cpl = leads > 0 ? spend / leads : 0;
+  const ctr = imp > 0 ? (clicks / imp * 100) : 0;
+  const cpm = imp > 0 ? (spend / imp * 1000) : 0;
+  const freq = reach > 0 ? imp / reach : 0;
+  const cpc = clicks > 0 ? spend / clicks : 0;
+  
+  const connectRate = clicks > 0 ? (views / clicks * 100) : 0;
+  const checkoutRate = views > 0 ? (checkouts / views * 100) : 0;
+  const purchaseRate = checkouts > 0 ? (purchases / checkouts * 100) : 0;
+  const leadRate = views > 0 ? (leads / views * 100) : 0;
+  const msgRate = leads > 0 ? (msgs / leads * 100) : 0;
 
-  // Atualiza cards KPI com animação
-  const oldSpend = parseFloat(document.getElementById('mk-spend').dataset.val || 0);
-  document.getElementById('mk-spend').dataset.val = spend;
-  animateValue('mk-spend', oldSpend, spend, 1000, fmt);
-  updateDelta('mk-spend-delta', spend, oldSpend, 'normal');
+  // Update Top Cards
+  animateValue('mk-spend', 0, spend, 800, fmt);
+  animateValue('mk-revenue', 0, revenue, 800, fmt);
+  animateValue('mk-purchases', 0, purchases, 800, fmtn);
+  animateValue('mk-roas', 0, roas, 800, v => v.toFixed(2));
+  animateValue('mk-cpp', 0, cpp, 800, fmt);
+  animateValue('mk-leads', 0, leads, 800, fmtn);
+  animateValue('mk-cpl-val-card', 0, cpl, 800, fmt);
 
-  const oldLeads = parseInt(document.getElementById('mk-leads').dataset.val || 0);
-  document.getElementById('mk-leads').dataset.val = totalLeads;
-  animateValue('mk-leads', oldLeads, totalLeads, 1000, fmtn);
-  updateDelta('mk-leads-delta', totalLeads, oldLeads, 'normal');
+  // Update Funnel based on Goal
+  if (currentGoal === 'LEAD_GENERATION') {
+    updateFunnel('Impressões', imp, 'Cliques', clicks, 'LP Views', views, 'Leads', leads, 
+                 'CTR', ctr, 'Connect', connectRate, 'Lead Rate', leadRate, 'Lead-to-Msg', msgRate);
+    document.getElementById('funnel-label-4').textContent = 'Mensagens';
+    document.getElementById('funnel-val-4').textContent = fmtn(msgs);
+  } else if (currentGoal === 'SALES_ECOMMERCE') {
+    updateFunnel('Impressões', imp, 'Cliques', clicks, 'LP Views', views, 'Add to Cart', atc,
+                 'CTR', ctr, 'Connect', connectRate, 'ATC Rate', (views>0?atc/views*100:0), 'Checkout Rate', checkoutRate);
+    document.getElementById('funnel-label-4').textContent = 'Compras';
+    document.getElementById('funnel-val-4').textContent = fmtn(purchases);
+    document.getElementById('rate-label-4').textContent = 'Taxa de Compra';
+    document.getElementById('rate-val-4').textContent = purchaseRate.toFixed(2) + '%';
+  } else {
+    // HYBRID / Default
+    updateFunnel('Cliques', clicks, 'Page Views', views, 'Checkouts', checkouts, 'Compras', purchases,
+                 'CTR', ctr, 'Connect', connectRate, 'Checkout', checkoutRate, 'Purchase', purchaseRate);
+  }
 
-  document.getElementById('mk-cpl').textContent       = totalLeads     > 0 ? fmt(cpl)        : '—';
-  updateDelta('mk-cpl-delta', cpl, cpl > 0 ? cpl * 0.95 : 0, 'inverse');
+  // Update Small KPIs
+  document.getElementById('mk-atc').textContent = fmtn(atc);
+  document.getElementById('mk-freq').textContent = freq.toFixed(2) + 'x';
+  document.getElementById('mk-cpm-val').textContent = fmt(cpm);
 
-  const oldMsgs = parseInt(document.getElementById('mk-msgs').dataset.val || 0);
-  document.getElementById('mk-msgs').dataset.val = totalMsgs;
-  animateValue('mk-msgs', oldMsgs, totalMsgs, 1000, fmtn);
-  updateDelta('mk-msgs-delta', totalMsgs, oldMsgs, 'normal');
+  // Update Progress Bars
+  document.getElementById('mk-checkouts').textContent = fmtn(checkouts);
+  const chkPct = Math.min(100, (checkouts / Math.max(1, views) * 100));
+  document.getElementById('checkout-progress-pct').textContent = chkPct.toFixed(1) + '%';
+  document.getElementById('checkout-progress-bar').style.width = chkPct + '%';
 
-  document.getElementById('mk-cpm').textContent       = fmt(cpm);
-  document.getElementById('mk-ctr').textContent       = ctr.toFixed(2) + '%';
+  const cpCheckout = checkouts > 0 ? spend / checkouts : 0;
+  document.getElementById('mk-cpcheckout').textContent = fmt(cpCheckout);
+  document.getElementById('cpcheckout-progress-bar').style.width = Math.min(100, (cpCheckout / 100 * 100)) + '%';
 
-  const oldPurch = parseInt(document.getElementById('mk-purchases').dataset.val || 0);
-  document.getElementById('mk-purchases').dataset.val = totalPurchases;
-  animateValue('mk-purchases', oldPurch, totalPurchases, 1000, fmtn);
-  updateDelta('mk-purchases-delta', totalPurchases, oldPurch, 'normal');
+  document.getElementById('mk-msgs-val').textContent = fmtn(msgs);
+  const msgPct = Math.min(100, (msgs / Math.max(1, leads) * 100));
+  document.getElementById('msg-progress-pct').textContent = msgPct.toFixed(1) + '%';
+  document.getElementById('msg-progress-bar').style.width = msgPct + '%';
 
-  // Montar array de campanhas com CPx calculado no nível da campanha
+  // Tables
   metaCamps = Object.values(campMap).map(c => ({
     ...c,
-    cpl:        c.leads     > 0 ? c.spend / c.leads     : 0,
-    cpMsg:      c.msgs      > 0 ? c.spend / c.msgs      : 0,
-    cpPurchase: c.purchases > 0 ? c.spend / c.purchases : 0,
-    ctr:        c.imp       > 0 ? c.clicks / c.imp * 100 : 0,
-    cpm:        c.imp       > 0 ? c.spend / c.imp * 1000 : 0,
+    cpp: c.purchases > 0 ? c.spend / c.purchases : 0,
+    cpl: c.leads > 0 ? c.spend / c.leads : 0,
+    roas: c.spend > 0 ? c.rev / c.spend : 0,
+    ctr: c.imp > 0 ? c.clicks / c.imp * 100 : 0
   }));
+  renderMetaTables(currentGoal);
 
-  metaAds = Object.values(adMap).map(a => ({
-    ...a,
-    freq:       a.reach     > 0 ? a.imp / a.reach       : (a.imp > 0 ? 1 : 0),
-    cpl:        a.leads     > 0 ? a.spend / a.leads     : 0,
-    cpMsg:      a.msgs      > 0 ? a.spend / a.msgs      : 0,
-    cpPurchase: a.purchases > 0 ? a.spend / a.purchases : 0,
-    ctr:        a.imp       > 0 ? a.clicks / a.imp * 100 : 0,
-  }));
-
-  renderMetaTables();
-
+  // Charts
+  renderMetaCharts(dailyData, metaCamps, currentGoal);
 }
 
-function renderMetaTables() {
-  const sortFn = (a,b) => {
-    const va = a[metaSortKey] ?? a['name'];
-    const vb = b[metaSortKey] ?? b['name'];
-    if (metaSortKey === 'name') return metaSortDir==='asc' ? va.localeCompare(vb) : vb.localeCompare(va);
-    return metaSortDir === 'desc' ? (vb > va ? 1 : -1) : (va > vb ? 1 : -1);
-  };
+function updateFunnel(l1, v1, l2, v2, l3, v3, l4, v4, rl1, rv1, rl2, rv2, rl3, rv3, rl4, rv4) {
+  document.getElementById('funnel-label-1').textContent = l1;
+  document.getElementById('funnel-val-1').textContent = fmtn(v1);
+  document.getElementById('funnel-label-2').textContent = l2;
+  document.getElementById('funnel-val-2').textContent = fmtn(v2);
+  document.getElementById('funnel-label-3').textContent = l3;
+  document.getElementById('funnel-val-3').textContent = fmtn(v3);
+  document.getElementById('funnel-label-4').textContent = l4;
+  document.getElementById('funnel-val-4').textContent = fmtn(v4);
+  
+  document.getElementById('rate-label-1').textContent = rl1;
+  document.getElementById('rate-val-1').textContent = (typeof rv1 === 'number' ? rv1.toFixed(2) + '%' : rv1);
+  document.getElementById('rate-label-2').textContent = rl2;
+  document.getElementById('rate-val-2').textContent = (typeof rv2 === 'number' ? rv2.toFixed(2) + '%' : rv2);
+  document.getElementById('rate-label-3').textContent = rl3;
+  document.getElementById('rate-val-3').textContent = (typeof rv3 === 'number' ? rv3.toFixed(2) + '%' : rv3);
+  document.getElementById('rate-label-4').textContent = rl4;
+  document.getElementById('rate-val-4').textContent = (typeof rv4 === 'number' ? rv4.toFixed(2) + '%' : rv4);
+}
 
-  const sorted = [...metaCamps].sort(sortFn);
-  const maxSpend = Math.max(...sorted.map(c=>c.spend), 1);
+let metaCharts = {};
 
-  document.getElementById('meta-camp-tbody').innerHTML = sorted.map(c => `
+function renderMiniSparkline(id, data, color) {
+  if (metaCharts[id]) metaCharts[id].destroy();
+  const ctx = document.getElementById(id).getContext('2d');
+  metaCharts[id] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.map((_, i) => i),
+      datasets: [{
+        data: data,
+        borderColor: color,
+        borderWidth: 2,
+        pointRadius: 0,
+        fill: false,
+        tension: 0.4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      scales: { x: { display: false }, y: { display: false } }
+    }
+  });
+}
+
+function renderMetaCharts(daily, camps, goal) {
+  const dates = Object.keys(daily).sort();
+  const revs = dates.map(d => daily[d].rev);
+  const purs = dates.map(d => daily[d].pur);
+  const leads = dates.map(d => daily[d].leads);
+
+  // Mini Sparklines
+  renderMiniSparkline('chart-mini-spend', dates.map(d => daily[d].spend || 0), '#ef4444');
+  renderMiniSparkline('chart-mini-revenue', revs, '#10b981');
+  renderMiniSparkline('chart-mini-purchases', purs, '#3b82f6');
+  renderMiniSparkline('chart-mini-roas', dates.map(d => (daily[d].spend > 0 ? daily[d].rev / daily[d].spend : 0)), '#a855f7');
+  renderMiniSparkline('chart-mini-cpp', dates.map(d => (daily[d].pur > 0 ? (daily[d].spend || 0) / daily[d].pur : 0)), '#f59e0b');
+  renderMiniSparkline('chart-mini-leads', leads, '#10b981');
+  renderMiniSparkline('chart-mini-cpl', dates.map(d => (daily[d].leads > 0 ? (daily[d].spend || 0) / daily[d].leads : 0)), '#f59e0b');
+
+  // Line Chart: Adapt to Goal
+  if (metaCharts.revPur) metaCharts.revPur.destroy();
+  const ctxLine = document.getElementById('chart-rev-pur').getContext('2d');
+  
+  let labelPrimary = 'Faturamento', dataPrimary = revs, colorPrimary = '#10b981';
+  let labelSecondary = 'Compras', dataSecondary = purs, colorSecondary = '#3b82f6';
+
+  if (goal === 'LEAD_GENERATION') {
+    labelPrimary = 'Leads'; dataPrimary = leads; colorPrimary = '#10b981';
+    labelSecondary = 'Mensagens'; dataSecondary = dates.map(d => daily[d].msgs); colorSecondary = '#3b82f6';
+  }
+
+  metaCharts.revPur = new Chart(ctxLine, {
+    type: 'line',
+    data: {
+      labels: dates.map(d => d.split('-').reverse().slice(0,2).join('/')),
+      datasets: [
+        { label: labelPrimary, data: dataPrimary, borderColor: colorPrimary, backgroundColor: `${colorPrimary}1A`, fill: true, tension: 0.4 },
+        { label: labelSecondary, data: dataSecondary, borderColor: colorSecondary, backgroundColor: 'transparent', tension: 0.4, yAxisID: 'y1' }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { display: false }, y: { display: false }, y1: { display: false, position: 'right' } }
+    }
+  });
+
+  // Donut Chart: Best Ads
+  const metric = goal === 'LEAD_GENERATION' ? 'leads' : 'purchases';
+  const topCamps = [...camps].sort((a,b) => b[metric] - a[metric]).slice(0, 5);
+  if (metaCharts.bestAds) metaCharts.bestAds.destroy();
+  const ctxDonut = document.getElementById('chart-best-ads').getContext('2d');
+  metaCharts.bestAds = new Chart(ctxDonut, {
+    type: 'doughnut',
+    data: {
+      labels: topCamps.map(c => c.name.substring(0,15)),
+      datasets: [{
+        data: topCamps.map(c => c[metric]),
+        backgroundColor: ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#a855f7'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'right', labels: { color: '#a1a1aa', font: { size: 10 } } } },
+      cutout: '70%'
+    }
+  });
+}
+
+function renderMetaTables(goal) {
+  const sorted = [...metaCamps].sort((a,b) => b.spend - a.spend);
+  const tbody = document.getElementById('meta-camp-tbody');
+  tbody.innerHTML = sorted.map(c => `
     <tr>
-      <td style="max-width:220px; vertical-align:middle"><div style="font-size:14px; font-weight:600; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis" title="${c.name}">${c.name}</div></td>
-      <td style="vertical-align:middle">
-        <div style="font-size:14px; font-weight:600; color:var(--text-main)">${fmt(c.spend)}</div>
-        <div style="width:100%;height:3px;background:rgba(255,255,255,0.05);margin-top:4px;border-radius:2px"><div style="width:${(c.spend/maxSpend*100)}%;height:100%;background:var(--info);border-radius:2px"></div></div>
-      </td>
-      <td style="vertical-align:middle"><div style="font-size:14px; font-weight:600; color:${c.leads > 0 ? 'var(--text-main)' : 'var(--text-dim)'}">${c.leads > 0 ? fmtn(c.leads) : '—'}</div></td>
-      <td style="vertical-align:middle"><div style="font-size:14px; font-weight:600; color:${c.leads > 0 ? 'var(--text-main)' : 'var(--text-dim)'}">${c.leads > 0 ? fmt(c.cpl) : '—'}</div></td>
-      <td style="vertical-align:middle"><div style="font-size:14px; font-weight:600; color:${c.msgs > 0 ? 'var(--text-main)' : 'var(--text-dim)'}">${c.msgs > 0 ? fmtn(c.msgs) : '—'}</div></td>
-      <td style="vertical-align:middle"><div style="font-size:14px; font-weight:600; color:${c.msgs > 0 ? 'var(--text-main)' : 'var(--text-dim)'}">${c.msgs > 0 ? fmt(c.cpMsg) : '—'}</div></td>
-      <td style="vertical-align:middle"><div style="font-size:14px; font-weight:600; color:${c.purchases > 0 ? 'var(--success)' : 'var(--text-dim)'}">${c.purchases > 0 ? fmtn(c.purchases) : '—'}</div></td>
-      <td style="vertical-align:middle"><div style="font-size:14px; font-weight:600; color:${c.purchases > 0 ? 'var(--text-main)' : 'var(--text-dim)'}">${c.purchases > 0 ? fmt(c.cpPurchase) : '—'}</div></td>
-      <td style="vertical-align:middle"><div style="font-size:14px; font-weight:500; color:var(--text-muted)">${c.imp > 0 ? fmtn(c.imp) : '—'}</div></td>
-      <td style="vertical-align:middle"><div style="font-size:14px; font-weight:500; color:var(--text-muted)">${c.clicks > 0 ? fmtn(c.clicks) : '—'}</div></td>
-      <td style="vertical-align:middle"><div style="font-size:14px; font-weight:500; color:var(--text-muted)">${c.clicks > 0 ? c.ctr.toFixed(2) + '%' : '—'}</div></td>
-      <td style="vertical-align:middle"><div style="font-size:14px; font-weight:500; color:var(--text-muted)">${c.imp > 0 ? fmt(c.cpm) : '—'}</div></td>
+      <td title="${c.name}">${c.name.substring(0,30)}...</td>
+      <td>${fmt(c.spend)}</td>
+      <td class="goal-sales">${fmt(c.rev)}</td>
+      <td class="goal-sales">${fmtn(c.purchases)}</td>
+      <td class="goal-sales">${c.purchases > 0 ? fmt(c.cpp) : '—'}</td>
+      <td class="goal-sales">${c.roas.toFixed(2)}x</td>
+      <td class="goal-lead">${fmtn(c.leads)}</td>
+      <td class="goal-lead">${c.leads > 0 ? fmt(c.cpl) : '—'}</td>
+      <td class="goal-lead">${fmtn(c.msgs)}</td>
+      <td>${c.ctr.toFixed(2)}%</td>
     </tr>
   `).join('');
-
-  renderMetaAdsTable();
 }
 
-function renderMetaAdsTable() {
-  const sortFn = (a,b) => {
-    const va = a[metaAdsSortKey] ?? a['name'];
-    const vb = b[metaAdsSortKey] ?? b['name'];
-    if (metaAdsSortKey === 'name') return metaAdsSortDir==='asc' ? va.localeCompare(vb) : vb.localeCompare(va);
-    return metaAdsSortDir === 'desc' ? (vb > va ? 1 : -1) : (va > vb ? 1 : -1);
-  };
-
-  const sorted = [...metaAds].sort(sortFn);
-  const maxSpend = Math.max(...sorted.map(a=>a.spend), 1);
-
-  document.getElementById('meta-ads-tbody').innerHTML = sorted.map(a => `
-    <tr>
-      <td style="max-width:220px; vertical-align:middle"><div style="font-size:14px; font-weight:600; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis" title="${a.name}">${a.name}</div></td>
-      <td style="vertical-align:middle">
-        <div style="font-size:14px; font-weight:600; color:var(--text-main)">${fmt(a.spend)}</div>
-        <div style="width:100%;height:3px;background:rgba(255,255,255,0.05);margin-top:4px;border-radius:2px"><div style="width:${(a.spend/maxSpend*100)}%;height:100%;background:var(--info);border-radius:2px"></div></div>
-      </td>
-      <td style="vertical-align:middle"><div style="font-size:14px; font-weight:500; color:var(--text-muted)">${a.freq > 0 ? a.freq.toFixed(2) : '—'}</div></td>
-      <td style="vertical-align:middle"><div style="font-size:14px; font-weight:600; color:${a.leads > 0 ? 'var(--text-main)' : 'var(--text-dim)'}">${a.leads > 0 ? fmtn(a.leads) : '—'}</div></td>
-      <td style="vertical-align:middle"><div style="font-size:14px; font-weight:600; color:${a.leads > 0 ? 'var(--text-main)' : 'var(--text-dim)'}">${a.leads > 0 ? fmt(a.cpl) : '—'}</div></td>
-      <td style="vertical-align:middle"><div style="font-size:14px; font-weight:600; color:${a.msgs > 0 ? 'var(--text-main)' : 'var(--text-dim)'}">${a.msgs > 0 ? fmtn(a.msgs) : '—'}</div></td>
-      <td style="vertical-align:middle"><div style="font-size:14px; font-weight:600; color:${a.msgs > 0 ? 'var(--text-main)' : 'var(--text-dim)'}">${a.msgs > 0 ? fmt(a.cpMsg) : '—'}</div></td>
-      <td style="vertical-align:middle"><div style="font-size:14px; font-weight:600; color:${a.purchases > 0 ? 'var(--success)' : 'var(--text-dim)'}">${a.purchases > 0 ? fmtn(a.purchases) : '—'}</div></td>
-      <td style="vertical-align:middle"><div style="font-size:14px; font-weight:600; color:${a.purchases > 0 ? 'var(--text-main)' : 'var(--text-dim)'}">${a.purchases > 0 ? fmt(a.cpPurchase) : '—'}</div></td>
-      <td style="vertical-align:middle"><div style="font-size:14px; font-weight:500; color:var(--text-muted)">${a.clicks > 0 ? a.ctr.toFixed(2) + '%' : '—'}</div></td>
-    </tr>
-  `).join('');
-}
 
 function sortMetaTable(key) {
   if (metaSortKey === key) metaSortDir = metaSortDir === 'desc' ? 'asc' : 'desc';
