@@ -1496,6 +1496,7 @@ tr:hover td {
         <div class="kpi-val" id="mk-cpp">R$ 0,00</div>
         <div id="mk-cpp-delta" class="kpi-delta"></div>
         <div style="height: 40px; margin-top: 8px;"><canvas id="chart-mini-cpp"></canvas></div>
+      </div>
       <div class="glass kpi-card primary goal-lead">
         <div class="kpi-label">CPL Médio <i data-lucide="zap" size="14" style="color:#f59e0b"></i></div>
         <div class="kpi-val" id="mk-cpl-val-card">R$ 0,00</div>
@@ -2666,11 +2667,17 @@ function renderMetaCharts(daily, camps, goal) {
 }
 
 function renderMetaTables(goal) {
+  if (!goal) {
+    const filter = document.getElementById('client-select').value || '__all__';
+    goal = (filter === '__all__') ? 'HYBRID' : (clientConfigs[filter] || 'HYBRID');
+  }
   const sorted = [...metaCamps].sort((a,b) => b.spend - a.spend);
   const tbody = document.getElementById('meta-camp-tbody');
+  if (!tbody) return;
+  
   tbody.innerHTML = sorted.map(c => `
     <tr>
-      <td title="${c.name}">${c.name.substring(0,30)}...</td>
+      <td title="${c.name}" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:250px">${c.name}</td>
       <td>${fmt(c.spend)}</td>
       <td class="goal-sales">${fmt(c.rev)}</td>
       <td class="goal-sales">${fmtn(c.purchases)}</td>
@@ -2684,10 +2691,10 @@ function renderMetaTables(goal) {
   `).join('');
 }
 
-
 function sortMetaTable(key) {
   if (metaSortKey === key) metaSortDir = metaSortDir === 'desc' ? 'asc' : 'desc';
   else { metaSortKey = key; metaSortDir = 'desc'; }
+  // Optional: implement actual sorting logic here if needed
   renderMetaTables();
 }
 
