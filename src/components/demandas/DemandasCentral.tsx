@@ -352,11 +352,15 @@ export default function DemandasCentral({ data }: Props) {
           ))}
           <button
             onClick={() => setView('trash')}
-            className={`px-4 py-2 text-[13px] font-medium rounded-lg inline-flex items-center gap-2 transition-all ${view === 'trash' ? 'bg-[#2A2A2A] text-white shadow-[0_0_10px_rgba(0,0,0,0.5)] border border-white/10' : 'text-[#A1A1AA] hover:text-[#F3F4F6] hover:bg-white/[0.04]'}`}
+            className={`relative px-3 py-2 text-[13px] font-medium rounded-lg inline-flex items-center transition-all ${view === 'trash' ? 'bg-[#2A2A2A] text-white shadow-[0_0_10px_rgba(0,0,0,0.5)] border border-white/10' : 'text-[#A1A1AA] hover:text-[#F3F4F6] hover:bg-white/[0.04]'}`}
             title="Lixeira"
           >
             <Trash2 size={16} />
-            Lixeira {deletedRows.length > 0 && <span className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full ml-1">{deletedRows.length}</span>}
+            {deletedRows.length > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 text-[10px] font-bold bg-red-500 text-white rounded-full flex items-center justify-center">
+                {deletedRows.length}
+              </span>
+            )}
           </button>
         </div>
         
