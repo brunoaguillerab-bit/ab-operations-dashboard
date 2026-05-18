@@ -20,6 +20,15 @@ function makeHistoricoItem(
   return { id: uid(), tipo, descricao, autor: 'Bruno', criadoEm: now(), ...extra };
 }
 
+// ─── Soft Delete Migration: garante que todas as demandas têm os campos ───
+function ensureSoftDeleteFields(demandas: Demanda[]): Demanda[] {
+  return demandas.map((d) => ({
+    ...d,
+    deletedAt: d.deletedAt ?? null,
+    deletedBy: d.deletedBy ?? null,
+  }));
+}
+
 // ─── State ──────────────────────────────────────────────────────────────────
 
 interface DemandasState {
@@ -43,9 +52,11 @@ interface DemandasState {
 
   add: (data: NovaDemanda) => string;
   update: (id: string, updates: Partial<Demanda>, campo?: string) => void;
-  remove: (id: string) => void;
+  remove: (id: string) => void;  // Soft delete
+  restoreSoftDeleted: (id: string) => void;  // Restore soft-deleted task
+  hardDelete: (id: string) => void;  // Permanent delete (hard delete)
   archive: (id: string) => void;
-  restore: (id: string) => void;
+  restore: (id: string) => void;  // Restore archived task
   duplicate: (id: string) => string;
   complete: (id: string) => void;
   updateStatus: (id: string, status: DemandaStatus) => void;
@@ -83,7 +94,7 @@ interface DemandasState {
 export const useDemandasStore = create<DemandasState>()(
   persist(
     (set, get) => ({
-      demandas: mockDemandas,
+      demandas: ensureSoftDeleteFields(mockDemandas),
       viewMode: 'lista',
       filters: { ...DEFAULT_FILTERS },
       selectedId: null,
@@ -100,6 +111,11 @@ export const useDemandasStore = create<DemandasState>()(
         const today = new Date().toDateString();
 
         return demandas.filter((d) => {
+          // ── Soft delete filter: por padrão, esconde tarefas deletadas ──
+          if (!filters.mostrarDeletadas && d.deletedAt !== null) return false;
+          if (filters.mostrarDeletadas && d.deletedAt === null) return false;
+
+          // ── Archive filter: controla se mostra tarefas arquivadas ──
           if (!filters.mostrarArquivadas && d.arquivada) return false;
           if (filters.mostrarArquivadas && !d.arquivada) return false;
 
@@ -150,6 +166,9 @@ export const useDemandasStore = create<DemandasState>()(
           historico: [makeHistoricoItem('criacao', `Demanda criada por Bruno`)],
           tags: data.tags ?? [],
           links: data.links ?? [],
+          // Soft delete fields - inicializa como não deletada
+          deletedAt: null,
+          deletedBy: null,
         };
         set((s) => ({ demandas: [demanda, ...s.demandas] }));
         return id;
@@ -175,7 +194,18 @@ export const useDemandasStore = create<DemandasState>()(
       },
 
       remove: (id) => {
-        set((s) => ({ demandas: s.demandas.filter((d) => d.id !== id) }));
+        // ─── SOFT DELETE: marca como deletada, não remove do array ───
+        set((s) => ({
+          demandas: s.demandas.map((d) =>
+            d.id !== id ? d : {
+              ...d,
+              deletedAt: now(),
+              deletedBy: 'Bruno',
+              atualizadaEm: now(),
+              historico: [...d.historico, makeHistoricoItem('exclusao', 'Demanda excluída')],
+            }
+          ),
+        }));
       },
 
       archive: (id) => {
@@ -200,6 +230,40 @@ export const useDemandasStore = create<DemandasState>()(
         }));
       },
 
+      restoreSoftDeleted: (id) => {
+        // ─── Restaura uma tarefa que foi soft-deletada ───
+        set((s) => ({
+          demandas: s.demandas.map((d) =>
+            d.id !== id ? d : {
+              ...d,
+              deletedAt: null,
+              deletedBy: null,
+              atualizadaEm: now(),
+              historico: [...d.historico, makeHistoricoItem('restauracao', 'Demanda restaurada da lixeira')],
+            }
+          ),
+        }));
+      },
+
+      hardDelete: (id) => {
+        // ─── DELETE PERMANENTE: remove completamente da lista ───
+        set((s) => ({
+          demandas: s.demandas.map((d) =>
+            d.id !== id ? d : {
+              ...d,
+              atualizadaEm: now(),
+              historico: [...d.historico, makeHistoricoItem('exclusao', 'Demanda deletada permanentemente')],
+            }
+          ),
+        }));
+        // Aguarda um breve momento para registrar no histórico, depois remove
+        setTimeout(() => {
+          set((s) => ({
+            demandas: s.demandas.filter((d) => d.id !== id),
+          }));
+        }, 100);
+      },
+
       duplicate: (id) => {
         const original = get().getById(id);
         if (!original) return '';
@@ -216,6 +280,9 @@ export const useDemandasStore = create<DemandasState>()(
           ordem: maxOrdem,
           historico: [makeHistoricoItem('criacao', `Duplicada de "${original.titulo}"`)],
           comentarios: [],
+          // Reset soft delete fields on duplication
+          deletedAt: null,
+          deletedBy: null,
         };
         set((s) => ({ demandas: [copia, ...s.demandas] }));
         return newId;

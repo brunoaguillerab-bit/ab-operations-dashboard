@@ -42,6 +42,8 @@ function normalizeRow(row: Record<string, unknown>): ClienteDemanda {
     prioridade: (toStr(row.prioridade) as ClienteDemanda['prioridade']) || 'Media',
     tags: toTags(row.tags),
     arquivado: toBool(row.arquivado),
+    deletedAt: typeof row.deleted_at === 'string' ? row.deleted_at : null,
+    deletedBy: typeof row.deleted_by === 'string' ? row.deleted_by : null,
   };
 }
 
@@ -69,12 +71,21 @@ function toInsert(row: ClienteDemanda) {
     prioridade: row.prioridade,
     tags: row.tags,
     arquivado: row.arquivado,
+    deleted_at: row.deletedAt || null,
+    deleted_by: row.deletedBy || null,
   };
 }
 
-export async function listDemandasCentral(): Promise<ClienteDemanda[]> {
+export async function listDemandasCentral(includeDeleted = false): Promise<ClienteDemanda[]> {
   if (!supabaseConfigured) return [];
-  const { data, error } = await (supabase as any).from(TABLE).select('*').order('created_at', { ascending: false });
+  let query = (supabase as any).from(TABLE).select('*');
+
+  // ─── Filter out soft-deleted items by default ───
+  if (!includeDeleted) {
+    query = query.is('deleted_at', null);
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: false });
   if (error) throw error;
   return (data || []).map((row: Record<string, unknown>) => normalizeRow(row));
 }
@@ -109,6 +120,8 @@ export async function updateDemandaCentral(id: string, updates: Partial<ClienteD
   if (updates.prioridade !== undefined) payload.prioridade = updates.prioridade;
   if (updates.tags !== undefined) payload.tags = updates.tags;
   if (updates.arquivado !== undefined) payload.arquivado = updates.arquivado;
+  if (updates.deletedAt !== undefined) payload.deleted_at = updates.deletedAt || null;
+  if (updates.deletedBy !== undefined) payload.deleted_by = updates.deletedBy || null;
 
   const { error } = await (supabase as any).from(TABLE).update(payload).eq('id', id);
   if (error) throw error;
@@ -139,6 +152,9 @@ export async function createDemandaCentral(seed?: Partial<ClienteDemanda>): Prom
     prioridade: 'Media',
     tags: [],
     arquivado: false,
+    // ─── Initialize soft delete fields ───
+    deletedAt: null,
+    deletedBy: null,
     ...seed,
   };
   await upsertDemandaCentral(newRow);
@@ -163,10 +179,54 @@ export async function loadDemandasFilters(userKey: string): Promise<DashboardFil
   return ((data as any)?.payload as DashboardFiltersPayload | null) || null;
 }
 
-export async function deleteDemandaCentral(id: string): Promise<void> {
+/**
+ * Soft delete: mark a demand as deleted without removing it from the database
+ * This allows recovery from the trash and maintains full history
+ */
+export async function deleteDemandaCentral(id: string, deletedBy: string = 'Sistema'): Promise<void> {
+  if (!supabaseConfigured) return;
+  const now = new Date().toISOString();
+  const { error } = await (supabase as any)
+    .from(TABLE)
+    .update({ deleted_at: now, deleted_by: deletedBy })
+    .eq('id', id);
+  if (error) throw error;
+}
+
+/**
+ * Restore a soft-deleted demand from trash
+ */
+export async function restoreDemandaCentral(id: string): Promise<void> {
+  if (!supabaseConfigured) return;
+  const { error } = await (supabase as any)
+    .from(TABLE)
+    .update({ deleted_at: null, deleted_by: null })
+    .eq('id', id);
+  if (error) throw error;
+}
+
+/**
+ * Permanently delete a demand from the database (hard delete)
+ * Use with caution - this is irreversible
+ */
+export async function hardDeleteDemandaCentral(id: string): Promise<void> {
   if (!supabaseConfigured) return;
   const { error } = await (supabase as any).from(TABLE).delete().eq('id', id);
   if (error) throw error;
+}
+
+/**
+ * Get all soft-deleted demands for the trash view
+ */
+export async function listDeletedDemandasCentral(): Promise<ClienteDemanda[]> {
+  if (!supabaseConfigured) return [];
+  const { data, error } = await (supabase as any)
+    .from(TABLE)
+    .select('*')
+    .not('deleted_at', 'is', null)
+    .order('deleted_at', { ascending: false });
+  if (error) throw error;
+  return (data || []).map((row: Record<string, unknown>) => normalizeRow(row));
 }
 
 

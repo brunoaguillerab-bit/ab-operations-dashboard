@@ -85,7 +85,7 @@ export interface Comentario {
   editado?: boolean;
 }
 
-export type HistoricoTipo = 'criacao' | 'edicao' | 'status' | 'comentario' | 'checklist' | 'checklist_deletado' | 'arquivo';
+export type HistoricoTipo = 'criacao' | 'edicao' | 'status' | 'comentario' | 'checklist' | 'checklist_deletado' | 'arquivo' | 'exclusao' | 'restauracao';
 
 export interface HistoricoItem {
   id: string;
@@ -125,6 +125,9 @@ export interface Demanda {
   recorrencia?: RecorrenciaTipo;
   templateId?: string;
   links?: string[];
+  // Soft delete fields
+  deletedAt: string | null;
+  deletedBy: string | null;
 }
 
 export type NovaDemanda = Omit<
@@ -145,6 +148,7 @@ export interface DemandaFilters {
   clienteId: string;
   responsavel: string;
   mostrarArquivadas: boolean;
+  mostrarDeletadas: boolean;  // show deleted/restored tasks
   vencidas: boolean;
   prazoHoje: boolean;
 }
@@ -157,6 +161,7 @@ export const DEFAULT_FILTERS: DemandaFilters = {
   clienteId: '',
   responsavel: '',
   mostrarArquivadas: false,
+  mostrarDeletadas: false,  // by default, hide deleted tasks
   vencidas: false,
   prazoHoje: false,
 };

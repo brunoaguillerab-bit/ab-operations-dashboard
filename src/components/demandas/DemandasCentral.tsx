@@ -1,19 +1,20 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import {  BarChart3, Calendar, Kanban, LayoutList, Plus, Search, Table, Timer, X, Filter } from 'lucide-react';
+import {  BarChart3, Calendar, Kanban, LayoutList, Plus, Search, Table, Timer, X, Filter, Trash2 } from 'lucide-react';
 import { ClienteCategoria, ClienteDemanda, DemandaClienteStatus, FiltrosPorColuna, SortState } from '@/types/demandasCentral';
-import { DashboardFiltersPayload, listDemandasCentral, loadDemandasFilters, saveDemandasFilters, updateDemandaCentral, deleteDemandaCentral } from '@/services/demandasCentralService';
+import { DashboardFiltersPayload, listDemandasCentral, loadDemandasFilters, saveDemandasFilters, updateDemandaCentral, deleteDemandaCentral, restoreDemandaCentral, hardDeleteDemandaCentral, listDeletedDemandasCentral } from '@/services/demandasCentralService';
 import { canTransitionToStatus } from '@/data/statusRules';
 import DemandaCreateWizardModal from '@/components/demandas/DemandaCreateWizardModal';
 import { TableView } from './TableView';
 import { KanbanView } from './KanbanView';
 import { DashboardView } from './DashboardView';
 import { TaskSidebar } from './TaskSidebar';
+import { TrashView } from './TrashView';
 
 interface Props { data: ClienteDemanda[]; }
 type TabKey = 'Todos' | ClienteCategoria;
-type MainView = 'quadro' | 'kanban' | 'calendario' | 'timeline' | 'dashboard' | 'lista';
+type MainView = 'quadro' | 'kanban' | 'calendario' | 'timeline' | 'dashboard' | 'lista' | 'trash';
 type ToastType = 'success' | 'error';
 type ToastItem = { id: string; type: ToastType; message: string };
 type ActivityItem = { id: string; text: string; at: string; user?: string };
@@ -38,10 +39,13 @@ const getUserKey = () => {
 
 export default function DemandasCentral({ data }: Props) {
   const [rows, setRows] = useState<ClienteDemanda[]>(data);
+  const [deletedRows, setDeletedRows] = useState<ClienteDemanda[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabKey>('Todos');
   const [globalSearch, setGlobalSearch] = useState('');
   const [sort, setSort] = useState<SortState>({ column: 'nomeCliente', direction: 'asc' });
+  // ─── Custom drag order: quando o usuário arrasta, usamos essa ordem ───
+  const [customOrderIds, setCustomOrderIds] = useState<string[] | null>(null);
   const [view, setView] = useState<MainView>('quadro');
   const [openCreate, setOpenCreate] = useState(false);
   const [editRow, setEditRow] = useState<ClienteDemanda | null>(null);
@@ -66,9 +70,14 @@ export default function DemandasCentral({ data }: Props) {
     let mounted = true;
     (async () => {
       try {
-        const [dbRows, saved] = await Promise.all([listDemandasCentral(), loadDemandasFilters(getUserKey())]);
+        const [dbRows, deletedDbRows, saved] = await Promise.all([
+          listDemandasCentral(),
+          listDeletedDemandasCentral(),
+          loadDemandasFilters(getUserKey())
+        ]);
         if (!mounted) return;
         if (dbRows.length > 0) setRows(dbRows);
+        if (deletedDbRows.length > 0) setDeletedRows(deletedDbRows);
         if (saved) {
           setActiveTab(saved.activeTab);
           setGlobalSearch(saved.globalSearch);
@@ -82,6 +91,11 @@ export default function DemandasCentral({ data }: Props) {
     return () => { mounted = false; };
   }, []);
 
+  // Limpa a ordem customizada sempre que filtros mudarem
+  useEffect(() => {
+    setCustomOrderIds(null);
+  }, [activeTab, globalSearch]);
+
   const filtered = useMemo(() => {
     let out = rows.filter((item) => {
       if (activeTab !== 'Todos' && item.categoria !== activeTab) return false;
@@ -93,7 +107,15 @@ export default function DemandasCentral({ data }: Props) {
       return true;
     });
 
-    if (sort.column) {
+    // Se o usuário arrastou e definiu uma ordem customizada, respeitá-la
+    if (customOrderIds) {
+      const orderMap = new Map(customOrderIds.map((id, i) => [id, i]));
+      out = [...out].sort((a, b) => {
+        const ai = orderMap.has(a.id) ? orderMap.get(a.id)! : Number.MAX_SAFE_INTEGER;
+        const bi = orderMap.has(b.id) ? orderMap.get(b.id)! : Number.MAX_SAFE_INTEGER;
+        return ai - bi;
+      });
+    } else if (sort.column) {
       out = [...out].sort((a, b) => {
         const valA = (a as any)[sort.column] || '';
         const valB = (b as any)[sort.column] || '';
@@ -104,7 +126,7 @@ export default function DemandasCentral({ data }: Props) {
     }
 
     return out;
-  }, [rows, activeTab, globalSearch, sort]);
+  }, [rows, activeTab, globalSearch, sort, customOrderIds]);
 
   const stats = useMemo(() => {
     const total = filtered.length;
@@ -139,14 +161,24 @@ export default function DemandasCentral({ data }: Props) {
   };
 
   const handleReorderTable = (newOrder: ClienteDemanda[]) => {
-    // Reorder logic for table view
+    // Grava a nova ordem customizada (IDs em sequência)
+    setCustomOrderIds(newOrder.map(r => r.id));
+    // Atualiza rows mantendo itens fora do filtro intactos
     setRows((prev) => {
-      const untouched = prev.filter(p => !newOrder.find(n => n.id === p.id));
+      const filteredIds = new Set(newOrder.map(r => r.id));
+      const untouched = prev.filter(p => !filteredIds.has(p.id));
       return [...newOrder, ...untouched];
     });
   };
 
   const handleDelete = async (task: ClienteDemanda) => {
+    // ─── Confirmation dialog before deletion ───
+    const confirmed = confirm(
+      `Tem certeza que deseja deletar "${task.nomeCliente}"?\n\n` +
+      `Esta ação pode ser desfeita através da Lixeira.`
+    );
+    if (!confirmed) return;
+
     const clienteName = task.nomeCliente;
     setRows((prev) => prev.filter(r => r.id !== task.id));
     if (selectedTask?.id === task.id) {
@@ -154,12 +186,42 @@ export default function DemandasCentral({ data }: Props) {
     }
     appendActivity(task.id, 'Tarefa deletada');
     try {
-      await deleteDemandaCentral(task.id);
-      pushToast('success', `"${clienteName}" foi deletado com sucesso.`);
-    } catch {
+      await deleteDemandaCentral(task.id, 'Bruno');
+      // Add to deleted rows for trash view
+      const now = new Date().toISOString();
+      setDeletedRows((prev) => [{ ...task, deletedAt: now, deletedBy: 'Bruno' }, ...prev]);
+      pushToast('success', `"${clienteName}" foi para a Lixeira.`);
+    } catch (err) {
       pushToast('error', `Erro ao deletar "${clienteName}". Tente novamente.`);
       // Revert deletion
       setRows((prev) => [task, ...prev]);
+    }
+  };
+
+  const handleRestore = async (id: string) => {
+    const task = deletedRows.find((t) => t.id === id);
+    if (!task) return;
+
+    try {
+      await restoreDemandaCentral(id);
+      setDeletedRows((prev) => prev.filter((r) => r.id !== id));
+      setRows((prev) => [{ ...task, deletedAt: null, deletedBy: null }, ...prev]);
+      pushToast('success', `"${task.tarefaDemanda}" foi restaurado da Lixeira.`);
+    } catch {
+      pushToast('error', `Erro ao restaurar "${task.tarefaDemanda}". Tente novamente.`);
+    }
+  };
+
+  const handleHardDelete = async (id: string) => {
+    const task = deletedRows.find((t) => t.id === id);
+    if (!task) return;
+
+    try {
+      await hardDeleteDemandaCentral(id);
+      setDeletedRows((prev) => prev.filter((r) => r.id !== id));
+      pushToast('success', `"${task.tarefaDemanda}" foi deletado permanentemente.`);
+    } catch {
+      pushToast('error', `Erro ao deletar permanentemente "${task.tarefaDemanda}". Tente novamente.`);
     }
   };
 
@@ -198,15 +260,23 @@ export default function DemandasCentral({ data }: Props) {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-1 p-1 bg-[#050505] border border-white/5 rounded-xl w-fit">
           {topViews.map((v) => (
-            <button 
-              key={v.id} 
-              onClick={() => setView(v.id)} 
+            <button
+              key={v.id}
+              onClick={() => setView(v.id)}
               className={`px-4 py-2 text-[13px] font-medium rounded-lg inline-flex items-center gap-2 transition-all ${view === v.id ? 'bg-[#2A2A2A] text-white shadow-[0_0_10px_rgba(0,0,0,0.5)] border border-white/10' : 'text-[#A1A1AA] hover:text-[#F3F4F6] hover:bg-white/[0.04]'}`}
             >
               <v.icon size={16} />
               {v.label}
             </button>
           ))}
+          <button
+            onClick={() => setView('trash')}
+            className={`px-4 py-2 text-[13px] font-medium rounded-lg inline-flex items-center gap-2 transition-all ${view === 'trash' ? 'bg-[#2A2A2A] text-white shadow-[0_0_10px_rgba(0,0,0,0.5)] border border-white/10' : 'text-[#A1A1AA] hover:text-[#F3F4F6] hover:bg-white/[0.04]'}`}
+            title="Lixeira"
+          >
+            <Trash2 size={16} />
+            Lixeira {deletedRows.length > 0 && <span className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full ml-1">{deletedRows.length}</span>}
+          </button>
         </div>
         
         {/* Categoria Filters (Cards) */}
@@ -289,9 +359,16 @@ export default function DemandasCentral({ data }: Props) {
           />
         )}
         {view === 'dashboard' && (
-          <DashboardView 
+          <DashboardView
             items={filtered}
             stats={stats}
+          />
+        )}
+        {view === 'trash' && (
+          <TrashView
+            items={deletedRows}
+            onRestore={handleRestore}
+            onHardDelete={handleHardDelete}
           />
         )}
       </div>
