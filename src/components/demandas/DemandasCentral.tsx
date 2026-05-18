@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {  BarChart3, Calendar, Kanban, LayoutList, Plus, Search, Table, Timer, X, Filter, Trash2 } from 'lucide-react';
 import { ClienteCategoria, ClienteDemanda, DemandaClienteStatus, FiltrosPorColuna, SortState } from '@/types/demandasCentral';
 import { DashboardFiltersPayload, listDemandasCentral, loadDemandasFilters, saveDemandasFilters, updateDemandaCentral, deleteDemandaCentral, restoreDemandaCentral, hardDeleteDemandaCentral, listDeletedDemandasCentral } from '@/services/demandasCentralService';
@@ -158,8 +158,11 @@ export default function DemandasCentral({ data }: Props) {
     return () => { mounted = false; };
   }, [data]);
 
-  // Limpa a ordem customizada sempre que filtros mudarem
+  // Limpa a ordem customizada ao mudar filtros — mas NÃO no mount inicial
+  const isMountedRef = useRef(false);
   useEffect(() => {
+    if (!isMountedRef.current) { isMountedRef.current = true; return; }
+    lsClearOrder();
     setCustomOrderIds(null);
   }, [activeTab, globalSearch]);
 
