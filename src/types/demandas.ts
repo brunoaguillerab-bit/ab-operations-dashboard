@@ -125,9 +125,9 @@ export interface Demanda {
   recorrencia?: RecorrenciaTipo;
   templateId?: string;
   links?: string[];
-  // Soft delete fields
-  deletedAt: string | null;
-  deletedBy: string | null;
+  // Soft delete fields (optional — default null nos novos registros)
+  deletedAt?: string | null;
+  deletedBy?: string | null;
 }
 
 export type NovaDemanda = Omit<

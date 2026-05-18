@@ -112,8 +112,8 @@ export const useDemandasStore = create<DemandasState>()(
 
         return demandas.filter((d) => {
           // ── Soft delete filter: por padrão, esconde tarefas deletadas ──
-          if (!filters.mostrarDeletadas && d.deletedAt !== null) return false;
-          if (filters.mostrarDeletadas && d.deletedAt === null) return false;
+          if (!filters.mostrarDeletadas && d.deletedAt != null) return false;
+          if (filters.mostrarDeletadas && d.deletedAt == null) return false;
 
           // ── Archive filter: controla se mostra tarefas arquivadas ──
           if (!filters.mostrarArquivadas && d.arquivada) return false;

@@ -45,9 +45,9 @@ export interface ClienteDemanda {
   prioridade: DemandaPrioridade;
   tags: string[];
   arquivado: boolean;
-  // Soft delete fields
-  deletedAt: string | null;
-  deletedBy: string | null;
+  // Soft delete fields (optional — default null nos novos registros)
+  deletedAt?: string | null;
+  deletedBy?: string | null;
 }
 
 export interface ColunaFiltro {
