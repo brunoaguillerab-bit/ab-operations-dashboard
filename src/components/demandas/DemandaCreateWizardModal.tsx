@@ -27,6 +27,7 @@ const baseForm: Omit<ClienteDemanda, 'id'> = {
   status: 'A fazer', prazoEntrega: '', dataRelatorio: '', dataOtimizacao: '', ultimaMensagem: '',
   valorMensalidade: null, saldoContaGoogleAds: null, saldoContaMetaAds: null,
   responsavel: 'Bruno', prioridade: 'Media', tags: [], arquivado: false,
+  deletedAt: null, deletedBy: null,
 };
 
 const formatBRL = (v: number | null) => v === null ? '' : v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
