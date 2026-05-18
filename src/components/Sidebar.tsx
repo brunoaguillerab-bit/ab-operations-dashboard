@@ -62,8 +62,8 @@ export default function Sidebar() {
 
   return (
     <motion.div
-      initial={{ width: 280 }}
-      animate={{ width: isCollapsed ? 80 : 280 }}
+      initial={{ width: 220 }}
+      animate={{ width: isCollapsed ? 72 : 220 }}
       transition={{ duration: 0.3, ease: 'easeInOut' }}
       className="h-screen bg-[#050505] border-r border-white/5 flex flex-col z-40 flex-shrink-0"
     >
