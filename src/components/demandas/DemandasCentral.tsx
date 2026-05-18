@@ -37,8 +37,24 @@ const getUserKey = () => {
   return fresh;
 };
 
-// ─── Persistência local de IDs deletados (fallback sem Supabase) ──────────────
+// ─── Persistência local de IDs deletados ─────────────────────────────────────
 const LS_DELETED_KEY = 'ab-demandas-central-deleted-ids';
+
+// ─── Persistência local da ordem customizada (drag & drop) ────────────────────
+const LS_ORDER_KEY = 'ab-demandas-central-order';
+
+const lsGetOrder = (): string[] | null => {
+  try {
+    const raw = localStorage.getItem(LS_ORDER_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+};
+const lsSaveOrder = (ids: string[]) => {
+  try { localStorage.setItem(LS_ORDER_KEY, JSON.stringify(ids)); } catch {}
+};
+const lsClearOrder = () => {
+  try { localStorage.removeItem(LS_ORDER_KEY); } catch {}
+};
 
 const lsGetDeletedIds = (): Set<string> => {
   try {
@@ -66,8 +82,10 @@ export default function DemandasCentral({ data }: Props) {
   const [activeTab, setActiveTab] = useState<TabKey>('Todos');
   const [globalSearch, setGlobalSearch] = useState('');
   const [sort, setSort] = useState<SortState>({ column: 'nomeCliente', direction: 'asc' });
-  // ─── Custom drag order: quando o usuário arrasta, usamos essa ordem ───
-  const [customOrderIds, setCustomOrderIds] = useState<string[] | null>(null);
+  // ─── Custom drag order: persiste no localStorage ─────────────────────
+  const [customOrderIds, setCustomOrderIds] = useState<string[] | null>(
+    () => (typeof window !== 'undefined' ? lsGetOrder() : null)
+  );
   const [view, setView] = useState<MainView>('quadro');
   const [openCreate, setOpenCreate] = useState(false);
   const [editRow, setEditRow] = useState<ClienteDemanda | null>(null);
@@ -210,11 +228,12 @@ export default function DemandasCentral({ data }: Props) {
   };
 
   const handleReorderTable = (newOrder: ClienteDemanda[]) => {
-    // Grava a nova ordem customizada (IDs em sequência)
-    setCustomOrderIds(newOrder.map(r => r.id));
-    // Atualiza rows mantendo itens fora do filtro intactos
+    const ids = newOrder.map(r => r.id);
+    // ── Persiste no localStorage para sobreviver ao F5 ──
+    lsSaveOrder(ids);
+    setCustomOrderIds(ids);
     setRows((prev) => {
-      const filteredIds = new Set(newOrder.map(r => r.id));
+      const filteredIds = new Set(ids);
       const untouched = prev.filter(p => !filteredIds.has(p.id));
       return [...newOrder, ...untouched];
     });
@@ -397,6 +416,9 @@ export default function DemandasCentral({ data }: Props) {
             }}
             sortState={sort}
             onSort={(column) => {
+              // Ordenar por coluna cancela a ordem customizada
+              lsClearOrder();
+              setCustomOrderIds(null);
               setSort(prev => ({
                 column,
                 direction: prev.column === column && prev.direction === 'asc' ? 'desc' : 'asc'
