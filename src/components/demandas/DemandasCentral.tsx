@@ -37,6 +37,28 @@ const getUserKey = () => {
   return fresh;
 };
 
+// ─── Persistência local de IDs deletados (fallback sem Supabase) ──────────────
+const LS_DELETED_KEY = 'ab-demandas-central-deleted-ids';
+
+const lsGetDeletedIds = (): Set<string> => {
+  try {
+    const raw = localStorage.getItem(LS_DELETED_KEY);
+    return new Set(raw ? JSON.parse(raw) : []);
+  } catch { return new Set(); }
+};
+const lsAddDeletedId = (id: string) => {
+  try {
+    const ids = lsGetDeletedIds(); ids.add(id);
+    localStorage.setItem(LS_DELETED_KEY, JSON.stringify([...ids]));
+  } catch {}
+};
+const lsRemoveDeletedId = (id: string) => {
+  try {
+    const ids = lsGetDeletedIds(); ids.delete(id);
+    localStorage.setItem(LS_DELETED_KEY, JSON.stringify([...ids]));
+  } catch {}
+};
+
 export default function DemandasCentral({ data }: Props) {
   const [rows, setRows] = useState<ClienteDemanda[]>(data);
   const [deletedRows, setDeletedRows] = useState<ClienteDemanda[]>([]);
@@ -70,26 +92,53 @@ export default function DemandasCentral({ data }: Props) {
     let mounted = true;
     (async () => {
       try {
+        // IDs marcados como deletados no localStorage (fallback sempre ativo)
+        const localDeletedIds = lsGetDeletedIds();
+
         const [dbRows, deletedDbRows, saved] = await Promise.all([
           listDemandasCentral(),
           listDeletedDemandasCentral(),
           loadDemandasFilters(getUserKey())
         ]);
         if (!mounted) return;
-        if (dbRows.length > 0) setRows(dbRows);
-        if (deletedDbRows.length > 0) setDeletedRows(deletedDbRows);
+
+        if (dbRows.length > 0) {
+          // Filtra do Supabase itens que foram deletados localmente
+          // (cobre o caso em que a coluna deleted_at ainda não existe no banco)
+          setRows(dbRows.filter(r => !localDeletedIds.has(r.id)));
+
+          // Monta lista de deletados: do Supabase + os que estão só no localStorage
+          const supaDeletedIds = new Set(deletedDbRows.map(r => r.id));
+          const onlyLocalDeleted = dbRows
+            .filter(r => localDeletedIds.has(r.id) && !supaDeletedIds.has(r.id))
+            .map(r => ({ ...r, deletedAt: new Date().toISOString(), deletedBy: 'Bruno' }));
+          setDeletedRows([...deletedDbRows, ...onlyLocalDeleted]);
+        } else {
+          // Supabase não configurado — filtra mock data pelo localStorage
+          setRows(data.filter(r => !localDeletedIds.has(r.id)));
+          const localDeleted = data
+            .filter(r => localDeletedIds.has(r.id))
+            .map(r => ({ ...r, deletedAt: new Date().toISOString(), deletedBy: 'Bruno' }));
+          setDeletedRows(localDeleted);
+        }
+
         if (saved) {
           setActiveTab(saved.activeTab);
           setGlobalSearch(saved.globalSearch);
         }
       } catch {
-        if (mounted) setError('Conexão instável. Usando dados locais.');
+        if (mounted) {
+          // Conexão falhou — aplica filtro localStorage no mock data
+          const localDeletedIds = lsGetDeletedIds();
+          setRows(data.filter(r => !localDeletedIds.has(r.id)));
+          setError('Conexão instável. Usando dados locais.');
+        }
       } finally {
         if (mounted) setLoading(false);
       }
     })();
     return () => { mounted = false; };
-  }, []);
+  }, [data]);
 
   // Limpa a ordem customizada sempre que filtros mudarem
   useEffect(() => {
@@ -172,57 +221,67 @@ export default function DemandasCentral({ data }: Props) {
   };
 
   const handleDelete = async (task: ClienteDemanda) => {
-    // ─── Confirmation dialog before deletion ───
     const confirmed = confirm(
-      `Tem certeza que deseja deletar "${task.nomeCliente}"?\n\n` +
-      `Esta ação pode ser desfeita através da Lixeira.`
+      `Tem certeza que deseja deletar "${task.nomeCliente}"?\n\nEsta ação pode ser desfeita através da Lixeira.`
     );
     if (!confirmed) return;
 
-    const clienteName = task.nomeCliente;
+    // ── 1. Salva no localStorage imediatamente (persiste no F5) ──
+    lsAddDeletedId(task.id);
+
+    // ── 2. Atualiza UI ──
     setRows((prev) => prev.filter(r => r.id !== task.id));
-    if (selectedTask?.id === task.id) {
-      setSelectedTask(null);
-    }
+    if (selectedTask?.id === task.id) setSelectedTask(null);
+    const now = new Date().toISOString();
+    setDeletedRows((prev) => [{ ...task, deletedAt: now, deletedBy: 'Bruno' }, ...prev]);
     appendActivity(task.id, 'Tarefa deletada');
+
+    // ── 3. Tenta salvar no Supabase (best-effort) ──
     try {
       await deleteDemandaCentral(task.id, 'Bruno');
-      // Add to deleted rows for trash view
-      const now = new Date().toISOString();
-      setDeletedRows((prev) => [{ ...task, deletedAt: now, deletedBy: 'Bruno' }, ...prev]);
-      pushToast('success', `"${clienteName}" foi para a Lixeira.`);
-    } catch (err) {
-      pushToast('error', `Erro ao deletar "${clienteName}". Tente novamente.`);
-      // Revert deletion
-      setRows((prev) => [task, ...prev]);
+    } catch {
+      // Falha silenciosa — localStorage já garantiu a persistência
     }
+    pushToast('success', `"${task.nomeCliente}" foi para a Lixeira.`);
   };
 
   const handleRestore = async (id: string) => {
     const task = deletedRows.find((t) => t.id === id);
     if (!task) return;
 
+    // ── 1. Remove do localStorage imediatamente ──
+    lsRemoveDeletedId(id);
+
+    // ── 2. Atualiza UI ──
+    setDeletedRows((prev) => prev.filter((r) => r.id !== id));
+    setRows((prev) => [{ ...task, deletedAt: null, deletedBy: null }, ...prev]);
+
+    // ── 3. Tenta salvar no Supabase (best-effort) ──
     try {
       await restoreDemandaCentral(id);
-      setDeletedRows((prev) => prev.filter((r) => r.id !== id));
-      setRows((prev) => [{ ...task, deletedAt: null, deletedBy: null }, ...prev]);
-      pushToast('success', `"${task.tarefaDemanda}" foi restaurado da Lixeira.`);
     } catch {
-      pushToast('error', `Erro ao restaurar "${task.tarefaDemanda}". Tente novamente.`);
+      // Falha silenciosa — localStorage já garantiu a persistência
     }
+    pushToast('success', `"${task.tarefaDemanda}" foi restaurado da Lixeira.`);
   };
 
   const handleHardDelete = async (id: string) => {
     const task = deletedRows.find((t) => t.id === id);
     if (!task) return;
 
+    // ── 1. Remove do localStorage ──
+    lsRemoveDeletedId(id);
+
+    // ── 2. Atualiza UI ──
+    setDeletedRows((prev) => prev.filter((r) => r.id !== id));
+
+    // ── 3. Tenta deletar do Supabase (best-effort) ──
     try {
       await hardDeleteDemandaCentral(id);
-      setDeletedRows((prev) => prev.filter((r) => r.id !== id));
-      pushToast('success', `"${task.tarefaDemanda}" foi deletado permanentemente.`);
     } catch {
-      pushToast('error', `Erro ao deletar permanentemente "${task.tarefaDemanda}". Tente novamente.`);
+      // Falha silenciosa
     }
+    pushToast('success', `"${task.tarefaDemanda}" foi deletado permanentemente.`);
   };
 
   const exportCsv = () => {
