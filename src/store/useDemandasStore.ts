@@ -295,13 +295,18 @@ export const useDemandasStore = create<DemandasState>()(
 
       deleteChecklistItem: (demandaId, itemId) => {
         set((s) => ({
-          demandas: s.demandas.map((d) =>
-            d.id !== demandaId ? d : {
+          demandas: s.demandas.map((d) => {
+            if (d.id !== demandaId) return d;
+            // Encontrar o item que será deletado para registrar no histórico
+            const itemDeletado = d.checklist.find((c) => c.id === itemId);
+            const textoItem = itemDeletado?.texto || 'Item desconhecido';
+            return {
               ...d,
               checklist: d.checklist.filter((c) => c.id !== itemId),
               atualizadaEm: now(),
-            }
-          ),
+              historico: [...d.historico, makeHistoricoItem('checklist_deletado', `Campanha removida: "${textoItem}"`)],
+            };
+          }),
         }));
       },
 

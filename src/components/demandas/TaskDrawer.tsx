@@ -6,6 +6,7 @@ import {
   X, Edit3, Check, Plus, Trash2, Send, Clock,
   Calendar, User, ChevronDown, Archive,
   CheckSquare, Square, MessageSquare, History, Copy,
+  FileText, AlertCircle,
 } from 'lucide-react';
 import {
   Demanda, STATUS_CONFIG, PRIORIDADE_CONFIG,
@@ -23,6 +24,20 @@ const TAB_ITEMS = [
 ] as const;
 
 type DrawerTab = typeof TAB_ITEMS[number]['id'];
+
+// Função para retornar o ícone e cor baseado no tipo de histórico
+function getHistoricoIcon(tipo: string) {
+  const iconMap: Record<string, { Icon: any; color: string; bgColor: string }> = {
+    criacao: { Icon: FileText, color: 'text-emerald-400', bgColor: 'bg-emerald-500/10' },
+    edicao: { Icon: Edit3, color: 'text-blue-400', bgColor: 'bg-blue-500/10' },
+    status: { Icon: AlertCircle, color: 'text-amber-400', bgColor: 'bg-amber-500/10' },
+    comentario: { Icon: MessageSquare, color: 'text-purple-400', bgColor: 'bg-purple-500/10' },
+    checklist: { Icon: CheckSquare, color: 'text-cyan-400', bgColor: 'bg-cyan-500/10' },
+    checklist_deletado: { Icon: Trash2, color: 'text-red-400', bgColor: 'bg-red-500/10' },
+    arquivo: { Icon: Archive, color: 'text-zinc-400', bgColor: 'bg-zinc-500/10' },
+  };
+  return iconMap[tipo] || { Icon: FileText, color: 'text-[#A1A1AA]', bgColor: 'bg-[#2A2F3A]' };
+}
 
 export default function TaskDrawer() {
   const {
@@ -446,20 +461,25 @@ export default function TaskDrawer() {
                       {demanda.historico.length === 0 && (
                         <p className="text-sm text-[#A1A1AA] text-center py-6">Sem histórico.</p>
                       )}
-                      {[...demanda.historico].reverse().map(h => (
-                        <div key={h.id} className="flex gap-3">
-                          <div className="w-1.5 h-1.5 rounded-full bg-[#A1A1AA] mt-1.5 flex-shrink-0" />
-                          <div>
-                            <p className="text-sm text-[#A1A1AA]">
-                              <span className="text-white font-medium">{h.autor}</span>{' '}
-                              {h.descricao}
-                            </p>
-                            <p className="text-[10px] text-[#555] mt-0.5">
-                              {format(new Date(h.criadoEm), "dd/MM/yy 'às' HH:mm", { locale: ptBR })}
-                            </p>
+                      {[...demanda.historico].reverse().map(h => {
+                        const { Icon, color, bgColor } = getHistoricoIcon(h.tipo);
+                        return (
+                          <div key={h.id} className="flex gap-3">
+                            <div className={`w-6 h-6 rounded-full ${bgColor} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                              <Icon size={12} className={color} />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-sm text-[#A1A1AA]">
+                                <span className="text-white font-medium">{h.autor}</span>{' '}
+                                {h.descricao}
+                              </p>
+                              <p className="text-[10px] text-[#555] mt-0.5">
+                                {format(new Date(h.criadoEm), "dd/MM/yy 'às' HH:mm", { locale: ptBR })}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>

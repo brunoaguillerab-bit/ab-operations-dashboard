@@ -85,7 +85,7 @@ export interface Comentario {
   editado?: boolean;
 }
 
-export type HistoricoTipo = 'criacao' | 'edicao' | 'status' | 'comentario' | 'checklist' | 'arquivo';
+export type HistoricoTipo = 'criacao' | 'edicao' | 'status' | 'comentario' | 'checklist' | 'checklist_deletado' | 'arquivo';
 
 export interface HistoricoItem {
   id: string;
