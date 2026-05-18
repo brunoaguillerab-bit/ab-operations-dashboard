@@ -25,16 +25,15 @@
   --text-main: #ffffff;
   --text-muted: #a1a1aa;
   --text-dim: #52525b;
-  --radius: 16px;
-  --sidebar-w: 260px;
+  --radius: 8px;
+  --sidebar-w: 240px;
   --glass: rgba(255, 255, 255, 0.01);
   --glass-border: rgba(255, 255, 255, 0.04);
   --glass-hover: rgba(255, 255, 255, 0.03);
-  --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.2), 0 2px 4px rgba(0,0,0,0.1);
-  --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.3), 0 10px 10px -5px rgba(0,0,0,0.2);
-  --shadow-xl: 0 25px 50px -12px rgba(0,0,0,0.5);
-  --glow-sm: 0 0 20px rgba(239, 68, 68, 0.15);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.1);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.2);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.3);
+  --glow-sm: 0 0 10px rgba(239, 68, 68, 0.1);
 }
 
 * {
@@ -212,10 +211,10 @@ body.embedded-mode .main {
 .main {
   margin-left: var(--sidebar-w);
   width: calc(100% - var(--sidebar-w));
-  padding: 32px;
+  padding: 12px 16px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 12px;
 }
 
 header {
@@ -398,12 +397,17 @@ select:hover, .btn-secondary:hover, .custom-select:hover {
 }
 
 .kpi-card.primary {
-  padding: 16px 20px;
-  border: 1px solid var(--border-hover);
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  min-height: 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .kpi-card.primary .kpi-val {
-  font-size: 24px;
+  font-size: 18px;
+  margin-bottom: 0;
 }
 
 .kpi-card.secondary {
@@ -1061,12 +1065,94 @@ tr:hover td {
   transition: width 1s ease-out;
 }
 
-.chart-card {
-  padding: 20px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
+    /* META ADS CUSTOM LAYOUT - HIGH DENSITY */
+    .meta-grid-top {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 8px;
+    }
+    
+    .meta-middle-row {
+      display: grid;
+      grid-template-columns: 240px 1fr 280px;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .funnel-card {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .funnel-svg-container {
+      height: 180px;
+      margin: 10px 0;
+    }
+
+    .charts-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .progress-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .progress-card {
+      padding: 10px;
+    }
+
+    .meta-camp-table-card {
+      max-height: 380px;
+    }
+
+    .meta-camp-table-wrapper {
+      max-height: 320px;
+    }
+
+    .chart-card {
+      padding: 12px;
+    }
+
+    .chart-title {
+      font-size: 11px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+    }
+
+    .camp-table th, .camp-table td {
+      padding: 8px 12px;
+      font-size: 12px;
+    }
+
+    .kpi-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .kpi-delta {
+      margin-top: 4px;
+      padding: 2px 4px;
+      font-size: 10px;
+    }
+
+    /* Small sparklines tweak */
+    .mini-sparkline-container {
+      position: absolute;
+      bottom: 8px;
+      right: 12px;
+      width: 50px;
+      height: 25px;
+      opacity: 0.6;
+    }
 
 .chart-title {
   font-size: 14px;
@@ -1326,75 +1412,71 @@ tr:hover td {
 
 
     <!-- 2️⃣ AI & INSIGHTS NO TOPO -->
-    <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 24px; animation-delay: 0.15s" class="staggered">
+    <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 12px; animation-delay: 0.15s" class="staggered">
       
       <!-- AB PERFORMANCE AI -->
-      <div class="ab-ai-card">
-        <h3 style="font-size: 16px; font-weight: 700; color: #FFFFFF; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-          <i data-lucide="brain-circuit" style="color: #EF4444;" size="20"></i> AB Performance AI
+      <div class="ab-ai-card" style="padding: 16px;">
+        <h3 style="font-size: 14px; font-weight: 700; color: #FFFFFF; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+          <i data-lucide="brain-circuit" style="color: #EF4444;" size="16"></i> Performance AI
         </h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-          <div class="ab-ai-badge green">
-            <i data-lucide="trending-up" size="24" style="color: #10B981;"></i>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="ab-ai-badge green" style="padding: 10px;">
+            <i data-lucide="trending-up" size="18" style="color: #10B981;"></i>
             <div>
-              <div style="font-size: 12px; color: #9CA3AF;">Projetos em Alta</div>
-              <div style="font-size: 20px; font-weight: 700; color: #FFFFFF;">8</div>
+              <div style="font-size: 10px; color: #9CA3AF;">Projetos em Alta</div>
+              <div style="font-size: 18px; font-weight: 700; color: #FFFFFF;">8</div>
             </div>
           </div>
-          <div class="ab-ai-badge red">
-            <i data-lucide="alert-triangle" size="24" style="color: #EF4444;"></i>
+          <div class="ab-ai-badge red" style="padding: 10px;">
+            <i data-lucide="alert-triangle" size="18" style="color: #EF4444;"></i>
             <div>
-              <div style="font-size: 12px; color: #9CA3AF;">Requer Atenção</div>
-              <div style="font-size: 20px; font-weight: 700; color: #FFFFFF;">3</div>
+              <div style="font-size: 10px; color: #9CA3AF;">Atenção</div>
+              <div style="font-size: 18px; font-weight: 700; color: #FFFFFF;">3</div>
             </div>
           </div>
         </div>
       </div>
 
       <!-- ÚLTIMOS INSIGHTS -->
-      <div style="display: flex; flex-direction: column; gap: 12px; justify-content: center;">
-        <h4 style="font-size: 14px; color: #E5E7EB; margin-bottom: 4px;">Últimos Insights</h4>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-          <div class="ab-insight-card" style="height: 100%;">
-            <i data-lucide="sparkles" size="24" style="color: #EF4444; flex-shrink: 0;"></i>
+      <div style="display: flex; flex-direction: column; gap: 8px; justify-content: center;">
+        <h4 style="font-size: 12px; color: #E5E7EB; margin-bottom: 0;">Últimos Insights</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 10px;">
+          <div class="ab-insight-card" style="padding: 12px;">
+            <i data-lucide="sparkles" size="18" style="color: #EF4444; flex-shrink: 0;"></i>
             <div>
-              <div style="font-size: 14px; font-weight: 600; color: #FFFFFF;">Spa Essência</div>
-              <div style="font-size: 12px; color: #9CA3AF; margin-top: 4px;">CPA reduziu significativamente na última semana.</div>
-              <div style="font-size: 18px; font-weight: 700; color: #EF4444; margin-top: 8px;">-24% CPA</div>
+              <div style="font-size: 12px; font-weight: 600; color: #FFFFFF;">Spa Essência</div>
+              <div style="font-size: 16px; font-weight: 700; color: #EF4444;">-24% CPA</div>
             </div>
           </div>
-          <div class="ab-insight-card" style="border-left-color: #10B981; height: 100%;">
-            <i data-lucide="trending-up" size="24" style="color: #10B981; flex-shrink: 0;"></i>
-            <div>
-              <div style="font-size: 14px; font-weight: 600; color: #FFFFFF;" id="ai-insight">Analisando performance de todos os canais...</div>
-            </div>
+          <div class="ab-insight-card" style="border-left-color: #10B981; padding: 12px;">
+            <i data-lucide="trending-up" size="18" style="color: #10B981; flex-shrink: 0;"></i>
+            <div style="font-size: 11px; font-weight: 500; color: #FFFFFF;" id="ai-insight">Analisando performance...</div>
           </div>
         </div>
       </div>
-      
     </div>
 
     <!-- MAIN DASHBOARD AREA -->
     <div style="animation-delay: 0.2s" class="staggered">
       <!-- 5️⃣ TABELA -->
       <div class="ab-ai-card" style="padding: 0; overflow: hidden;">
-        <div style="padding: 20px 24px; border-bottom: 1px solid #1A1D24; display: flex; justify-content: space-between; align-items: center;">
-          <h3 style="font-size: 16px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 10px;">
-            <i data-lucide="bar-chart-2" style="color: #EF4444;" size="20"></i> Performance por Projeto
+        <div style="padding: 12px 20px; border-bottom: 1px solid #1A1D24; display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="font-size: 14px; font-weight: 700; color: #FFFFFF; display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="bar-chart-2" style="color: #EF4444;" size="16"></i> Performance por Projeto
           </h3>
-          <div id="overview-loading" style="display:none"><div class="spinner"></div></div>
+          <div id="overview-loading" style="display:none"><div class="spinner" style="width:16px; height:16px"></div></div>
         </div>
-        <div class="table-responsive">
+        <div class="table-responsive" style="max-height: 450px; overflow-y: auto;">
           <table class="ab-table" id="overview-table">
             <thead>
               <tr>
-                <th onclick="sortTable('name')" style="cursor:pointer">Projeto <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
-                <th>Canal</th>
-                <th onclick="sortTable('spend')" style="cursor:pointer; text-align:center">Investimento <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
-                <th onclick="sortTable('clicks')" style="cursor:pointer; text-align:center">Cliques <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
-                <th onclick="sortTable('conv')" style="cursor:pointer; text-align:center">Conversões <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
-                <th onclick="sortTable('cpa')" style="cursor:pointer; text-align:center">CPA <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
-                <th onclick="sortTable('roas')" style="cursor:pointer; text-align:center">ROAS <i data-lucide="chevrons-up-down" size="13" class="sort-icon"></i></th>
+                <th style="padding: 10px 16px; font-size: 10px;" onclick="sortTable('name')">Projeto</th>
+                <th style="padding: 10px 16px; font-size: 10px;">Canal</th>
+                <th style="padding: 10px 16px; font-size: 10px; text-align:center" onclick="sortTable('spend')">Investimento</th>
+                <th style="padding: 10px 16px; font-size: 10px; text-align:center" onclick="sortTable('clicks')">Cliques</th>
+                <th style="padding: 10px 16px; font-size: 10px; text-align:center" onclick="sortTable('conv')">Conv</th>
+                <th style="padding: 10px 16px; font-size: 10px; text-align:center" onclick="sortTable('cpa')">CPA</th>
+                <th style="padding: 10px 16px; font-size: 10px; text-align:center" onclick="sortTable('roas')">ROAS</th>
               </tr>
             </thead>
             <tbody id="overview-body"></tbody>
@@ -1410,56 +1492,56 @@ tr:hover td {
     <!-- KPIs PRINCIPAIS (LOOKER STYLE) -->
     <div class="meta-grid-top staggered" style="animation-delay: 0.1s">
       <div class="glass kpi-card primary">
-        <div class="kpi-label">Investimento <i data-lucide="facebook" size="14" style="color:#0668E1"></i></div>
+        <div class="kpi-label">Investimento <i data-lucide="facebook" size="10" style="color:#0668E1"></i></div>
         <div class="kpi-val" id="mk-spend">R$ 0,00</div>
         <div id="mk-spend-delta" class="kpi-delta"></div>
-        <div style="height: 40px; margin-top: 8px;"><canvas id="chart-mini-spend"></canvas></div>
+        <div class="mini-sparkline-container"><canvas id="chart-mini-spend"></canvas></div>
       </div>
       <div class="glass kpi-card primary goal-sales">
-        <div class="kpi-label">Faturamento <i data-lucide="dollar-sign" size="14" style="color:#10b981"></i></div>
+        <div class="kpi-label">Faturamento <i data-lucide="dollar-sign" size="10" style="color:#10b981"></i></div>
         <div class="kpi-val" id="mk-revenue">R$ 0,00</div>
         <div id="mk-revenue-delta" class="kpi-delta"></div>
-        <div style="height: 40px; margin-top: 8px;"><canvas id="chart-mini-revenue"></canvas></div>
+        <div class="mini-sparkline-container"><canvas id="chart-mini-revenue"></canvas></div>
       </div>
       <div class="glass kpi-card primary goal-lead">
-        <div class="kpi-label">Leads <i data-lucide="user-check" size="14" style="color:#10b981"></i></div>
+        <div class="kpi-label">Leads <i data-lucide="user-check" size="10" style="color:#10b981"></i></div>
         <div class="kpi-val" id="mk-leads">0</div>
         <div id="mk-leads-delta" class="kpi-delta"></div>
-        <div style="height: 40px; margin-top: 8px;"><canvas id="chart-mini-leads"></canvas></div>
+        <div class="mini-sparkline-container"><canvas id="chart-mini-leads"></canvas></div>
       </div>
       <div class="glass kpi-card primary goal-sales">
-        <div class="kpi-label">Compras <i data-lucide="shopping-bag" size="14" style="color:#3b82f6"></i></div>
+        <div class="kpi-label">Compras <i data-lucide="shopping-bag" size="10" style="color:#3b82f6"></i></div>
         <div class="kpi-val" id="mk-purchases">0</div>
         <div id="mk-purchases-delta" class="kpi-delta"></div>
-        <div style="height: 40px; margin-top: 8px;"><canvas id="chart-mini-purchases"></canvas></div>
+        <div class="mini-sparkline-container"><canvas id="chart-mini-purchases"></canvas></div>
       </div>
       <div class="glass kpi-card primary goal-sales">
-        <div class="kpi-label">ROAS Médio <i data-lucide="trending-up" size="14" style="color:#a855f7"></i></div>
+        <div class="kpi-label">ROAS <i data-lucide="trending-up" size="10" style="color:#a855f7"></i></div>
         <div class="kpi-val" id="mk-roas">0,00</div>
         <div id="mk-roas-delta" class="kpi-delta"></div>
-        <div style="height: 40px; margin-top: 8px;"><canvas id="chart-mini-roas"></canvas></div>
+        <div class="mini-sparkline-container"><canvas id="chart-mini-roas"></canvas></div>
       </div>
       <div class="glass kpi-card primary goal-sales">
-        <div class="kpi-label">CPA Médio <i data-lucide="zap" size="14" style="color:#f59e0b"></i></div>
+        <div class="kpi-label">CPA <i data-lucide="zap" size="10" style="color:#f59e0b"></i></div>
         <div class="kpi-val" id="mk-cpp">R$ 0,00</div>
         <div id="mk-cpp-delta" class="kpi-delta"></div>
-        <div style="height: 40px; margin-top: 8px;"><canvas id="chart-mini-cpp"></canvas></div>
+        <div class="mini-sparkline-container"><canvas id="chart-mini-cpp"></canvas></div>
       </div>
       <div class="glass kpi-card primary goal-lead">
-        <div class="kpi-label">CPL Médio <i data-lucide="zap" size="14" style="color:#f59e0b"></i></div>
+        <div class="kpi-label">CPL <i data-lucide="zap" size="10" style="color:#f59e0b"></i></div>
         <div class="kpi-val" id="mk-cpl-val-card">R$ 0,00</div>
         <div id="mk-cpl-delta" class="kpi-delta"></div>
-        <div style="height: 40px; margin-top: 8px;"><canvas id="chart-mini-cpl"></canvas></div>
+        <div class="mini-sparkline-container"><canvas id="chart-mini-cpl"></canvas></div>
       </div>
     </div>
 
     <!-- MIDDLE SECTION: FUNNEL + PROGRESS + CHARTS -->
-    <div class="meta-grid-middle staggered" style="animation-delay: 0.15s">
+    <div class="meta-middle-row staggered" style="animation-delay: 0.15s">
       <!-- FUNIL DE TRÁFEGO -->
       <div class="glass funnel-card">
         <h3 class="chart-title">Funil de Tráfego</h3>
         <div class="funnel-svg-container">
-          <svg viewBox="0 0 350 300" preserveAspectRatio="xMidYMid meet">
+          <svg viewBox="0 0 350 300" preserveAspectRatio="xMidYMid meet" style="max-height: 100%;">
             <defs>
               <linearGradient id="funnelGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
@@ -1473,56 +1555,41 @@ tr:hover td {
                 </feMerge>
               </filter>
             </defs>
-            <!-- Paths remain the same structure, but labels change -->
             <path d="M10,20 L190,20 L170,80 L30,80 Z" fill="url(#funnelGrad)" opacity="0.9" filter="url(#glow)" />
             <path d="M30,85 L170,85 L150,145 L50,145 Z" fill="url(#funnelGrad)" opacity="0.8" filter="url(#glow)" />
             <path d="M50,150 L150,150 L130,210 L70,210 Z" fill="url(#funnelGrad)" opacity="0.7" filter="url(#glow)" />
             <path d="M70,215 L130,215 L120,275 L80,275 Z" fill="url(#funnelGrad)" opacity="0.6" filter="url(#glow)" />
-            
-            <!-- Dynamic Labels inner -->
             <text x="100" y="45" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" id="funnel-label-1">Etapa 1</text>
             <text x="100" y="60" text-anchor="middle" fill="#fff" font-size="14" font-weight="800" id="funnel-val-1">0</text>
-            
             <text x="100" y="110" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" id="funnel-label-2">Etapa 2</text>
             <text x="100" y="125" text-anchor="middle" fill="#fff" font-size="14" font-weight="800" id="funnel-val-2">0</text>
-            
             <text x="100" y="175" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" id="funnel-label-3">Etapa 3</text>
-            <text x="100" y="125" text-anchor="middle" fill="#fff" font-size="14" font-weight="800" id="funnel-val-3" dy="65">0</text> <!-- fix dy -->
-            
+            <text x="100" y="190" text-anchor="middle" fill="#fff" font-size="14" font-weight="800" id="funnel-val-3">0</text>
             <text x="100" y="240" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" id="funnel-label-4">Etapa 4</text>
             <text x="100" y="255" text-anchor="middle" fill="#fff" font-size="14" font-weight="800" id="funnel-val-4">0</text>
-
-            <!-- Conversion Rates (Floating Right) -->
             <g transform="translate(210, 0)">
               <text x="0" y="50" fill="var(--text-main)" font-size="10" font-weight="700" text-anchor="start" id="rate-label-1">Taxa 1</text>
               <text x="0" y="65" fill="var(--text-muted)" font-size="12" font-weight="800" id="rate-val-1">0,00%</text>
-              
               <text x="0" y="115" fill="var(--text-main)" font-size="10" font-weight="700" text-anchor="start" id="rate-label-2">Taxa 2</text>
               <text x="0" y="130" fill="var(--text-muted)" font-size="12" font-weight="800" id="rate-val-2">0,00%</text>
-              
               <text x="0" y="180" fill="var(--text-main)" font-size="10" font-weight="700" text-anchor="start" id="rate-label-3">Taxa 3</text>
               <text x="0" y="195" fill="var(--text-muted)" font-size="12" font-weight="800" id="rate-val-3">0,00%</text>
-              
               <text x="0" y="245" fill="var(--text-main)" font-size="10" font-weight="700" text-anchor="start" id="rate-label-4">Taxa 4</text>
               <text x="0" y="260" fill="var(--text-muted)" font-size="12" font-weight="800" id="rate-val-4">0,00%</text>
             </g>
           </svg>
         </div>
+      </div>
 
-        <!-- SMALL BOTTOM KPIs -->
-        <div class="meta-kpi-small">
-          <div class="small-kpi-card">
-            <div class="small-kpi-label">Add to Cart</div>
-            <div class="small-kpi-val" id="mk-atc">0</div>
-          </div>
-          <div class="small-kpi-card">
-            <div class="small-kpi-label">Frequência</div>
-            <div class="small-kpi-val" id="mk-freq">0x</div>
-          </div>
-          <div class="small-kpi-card">
-            <div class="small-kpi-label">CPM</div>
-            <div class="small-kpi-val" id="mk-cpm-val">R$ 0,00</div>
-          </div>
+      <!-- CHARTS SECTION -->
+      <div class="charts-container">
+        <div class="glass chart-card" style="padding: 12px;">
+          <h3 class="chart-title" style="margin-bottom: 8px;"><i data-lucide="line-chart" size="14"></i> Faturamento vs Compras</h3>
+          <div style="height: 120px;"><canvas id="chart-rev-pur"></canvas></div>
+        </div>
+        <div class="glass chart-card" style="padding: 12px;">
+          <h3 class="chart-title" style="margin-bottom: 8px;"><i data-lucide="pie-chart" size="14"></i> Melhores Anúncios (Conversões)</h3>
+          <div style="height: 120px;"><canvas id="chart-best-ads"></canvas></div>
         </div>
       </div>
 
@@ -1530,57 +1597,46 @@ tr:hover td {
       <div class="progress-container">
         <div class="glass progress-card goal-sales">
           <div style="display:flex; justify-content:space-between; align-items:center">
-            <div style="font-size:12px; color:var(--text-muted); font-weight:600">Checkouts Iniciados</div>
-            <div style="font-size:11px; color:var(--primary); font-weight:700" id="checkout-progress-pct">0%</div>
+            <div style="font-size:11px; color:var(--text-muted); font-weight:600">Checkouts</div>
+            <div style="font-size:10px; color:var(--primary); font-weight:700" id="checkout-progress-pct">0%</div>
           </div>
-          <div style="font-size:24px; font-weight:800; margin-top:8px" id="mk-checkouts">0</div>
-          <div class="progress-bar-bg"><div class="progress-bar-fill" id="checkout-progress-bar"></div></div>
+          <div style="font-size:20px; font-weight:800; margin-top:4px" id="mk-checkouts">0</div>
+          <div class="progress-bar-bg" style="height:4px; margin-top:6px"><div class="progress-bar-fill" id="checkout-progress-bar"></div></div>
         </div>
         
         <div class="glass progress-card goal-sales">
           <div style="display:flex; justify-content:space-between; align-items:center">
-            <div style="font-size:12px; color:var(--text-muted); font-weight:600">Custo por Checkout</div>
-            <div style="font-size:11px; color:var(--warning); font-weight:700" id="cpcheckout-progress-pct">0%</div>
+            <div style="font-size:11px; color:var(--text-muted); font-weight:600">Custo Checkout</div>
+            <div style="font-size:10px; color:var(--warning); font-weight:700" id="cpcheckout-progress-pct">0%</div>
           </div>
-          <div style="font-size:24px; font-weight:800; margin-top:8px" id="mk-cpcheckout">R$ 0,00</div>
-          <div class="progress-bar-bg"><div class="progress-bar-fill" id="cpcheckout-progress-bar" style="background:var(--warning)"></div></div>
+          <div style="font-size:20px; font-weight:800; margin-top:4px" id="mk-cpcheckout">R$ 0,00</div>
+          <div class="progress-bar-bg" style="height:4px; margin-top:6px"><div class="progress-bar-fill" id="cpcheckout-progress-bar" style="background:var(--warning)"></div></div>
         </div>
 
         <div class="glass progress-card goal-lead">
           <div style="display:flex; justify-content:space-between; align-items:center">
-            <div style="font-size:12px; color:var(--text-muted); font-weight:600">Mensagens WhatsApp</div>
-            <div style="font-size:11px; color:var(--info); font-weight:700" id="msg-progress-pct">0%</div>
+            <div style="font-size:11px; color:var(--text-muted); font-weight:600">WhatsApp</div>
+            <div style="font-size:10px; color:var(--info); font-weight:700" id="msg-progress-pct">0%</div>
           </div>
-          <div style="font-size:24px; font-weight:800; margin-top:8px" id="mk-msgs-val">0</div>
-          <div class="progress-bar-bg"><div class="progress-bar-fill" id="msg-progress-bar" style="background:var(--info)"></div></div>
+          <div style="font-size:20px; font-weight:800; margin-top:4px" id="mk-msgs-val">0</div>
+          <div class="progress-bar-bg" style="height:4px; margin-top:6px"><div class="progress-bar-fill" id="msg-progress-bar" style="background:var(--info)"></div></div>
         </div>
-
-        <div class="glass progress-card" style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center">
-          <i data-lucide="zap" size="32" style="color:var(--primary); margin-bottom:12px"></i>
-          <div style="font-size:13px; color:var(--text-muted); line-height:1.4">Otimize suas campanhas focando no Connect Rate e na taxa de checkout.</div>
-        </div>
-      </div>
-
-      <!-- CHARTS -->
-      <div style="display:flex; flex-direction:column; gap:24px">
-        <div class="glass chart-card" style="flex:1.5">
-          <h3 class="chart-title"><i data-lucide="line-chart" size="16"></i> Faturamento vs Compras</h3>
-          <div style="flex:1; min-height:150px"><canvas id="chart-rev-pur"></canvas></div>
-        </div>
-        <div class="glass chart-card" style="flex:1">
-          <h3 class="chart-title"><i data-lucide="pie-chart" size="16"></i> Melhores Anúncios (Conversões)</h3>
-          <div class="donut-container"><canvas id="chart-best-ads"></canvas></div>
+        
+        <!-- COMPACT BOTTOM KPIs -->
+        <div class="glass" style="padding:10px; display:grid; grid-template-columns:1fr 1fr; gap:8px">
+          <div><div style="font-size:10px; color:var(--text-dim)">Add to Cart</div><div style="font-size:13px; font-weight:700" id="mk-atc">0</div></div>
+          <div><div style="font-size:10px; color:var(--text-dim)">Frequência</div><div style="font-size:13px; font-weight:700" id="mk-freq">0x</div></div>
         </div>
       </div>
     </div>
 
     <!-- TABELAS -->
-    <div class="glass card-table staggered" style="animation-delay: 0.2s">
-      <div class="card-header">
-        <h3><i data-lucide="layers" size="16" style="color:var(--primary)"></i> Campanhas Meta Ads</h3>
+    <div class="glass meta-camp-table-card staggered" style="animation-delay: 0.2s">
+      <div class="card-header" style="padding: 12px 20px;">
+        <h3 style="font-size: 14px;"><i data-lucide="layers" size="14" style="color:var(--primary)"></i> Campanhas Meta Ads</h3>
         <div id="meta-loading" style="display:none"><div class="spinner"></div></div>
       </div>
-      <div id="mt-camps" class="table-responsive">
+      <div id="mt-camps" class="meta-camp-table-wrapper">
         <table class="camp-table">
           <thead>
             <tr>
@@ -2641,28 +2697,34 @@ function renderMetaCharts(daily, camps, goal) {
 }
 
 function renderMetaTables(goal) {
+  if (!goal) {
+    const filter = document.getElementById('client-select').value || '__all__';
+    goal = (filter === '__all__') ? 'HYBRID' : (clientConfigs[filter] || 'HYBRID');
+  }
   const sorted = [...metaCamps].sort((a,b) => b.spend - a.spend);
   const tbody = document.getElementById('meta-camp-tbody');
+  if (!tbody) return;
+  
   tbody.innerHTML = sorted.map(c => `
     <tr>
-      <td title="${c.name}">${c.name.substring(0,30)}...</td>
-      <td>${fmt(c.spend)}</td>
+      <td title="${c.name}" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px">${c.name}</td>
+      <td style="font-weight:700">${fmt(c.spend)}</td>
       <td class="goal-sales">${fmt(c.rev)}</td>
-      <td class="goal-sales">${fmtn(c.purchases)}</td>
+      <td class="goal-sales" style="font-weight:700">${fmtn(c.purchases)}</td>
       <td class="goal-sales">${c.purchases > 0 ? fmt(c.cpp) : '—'}</td>
-      <td class="goal-sales">${c.roas.toFixed(2)}x</td>
-      <td class="goal-lead">${fmtn(c.leads)}</td>
+      <td class="goal-sales" style="font-weight:700">${c.roas.toFixed(2)}x</td>
+      <td class="goal-lead" style="font-weight:700">${fmtn(c.leads)}</td>
       <td class="goal-lead">${c.leads > 0 ? fmt(c.cpl) : '—'}</td>
-      <td class="goal-lead">${fmtn(c.msgs)}</td>
+      <td class="goal-lead" style="font-weight:700">${fmtn(c.msgs)}</td>
       <td>${c.ctr.toFixed(2)}%</td>
     </tr>
   `).join('');
 }
 
-
 function sortMetaTable(key) {
   if (metaSortKey === key) metaSortDir = metaSortDir === 'desc' ? 'asc' : 'desc';
   else { metaSortKey = key; metaSortDir = 'desc'; }
+  // Optional: implement actual sorting logic here if needed
   renderMetaTables();
 }
 
