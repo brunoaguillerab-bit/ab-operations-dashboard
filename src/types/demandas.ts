@@ -133,7 +133,8 @@ export interface Demanda {
 export type NovaDemanda = Omit<
   Demanda,
   'id' | 'criadaEm' | 'atualizadaEm' | 'arquivada' | 'ordem' |
-  'checklist' | 'subtarefas' | 'comentarios' | 'historico'
+  'checklist' | 'subtarefas' | 'comentarios' | 'historico' |
+  'deletedAt' | 'deletedBy'   // soft delete — sempre null em novos registros
 > & {
   checklist?: string[];   // plain text items for quick creation
 };
