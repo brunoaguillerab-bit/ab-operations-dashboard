@@ -2433,44 +2433,7 @@ function renderMeta(filter) {
   animateValue('mk-leads', 0, leads, 800, fmtn);
   animateValue('mk-cpl-val-card', 0, cpl, 800, fmt);
 
-  // Update Funnel based on Goal
-  if (currentGoal === 'LEAD_GENERATION') {
-    updateFunnel('Impressões', imp, 'Cliques', clicks, 'LP Views', views, 'Leads', leads, 
-                 'CTR', ctr, 'Connect', connectRate, 'Lead Rate', leadRate, 'Lead-to-Msg', msgRate);
-    document.getElementById('funnel-label-4').textContent = 'Mensagens';
-    document.getElementById('funnel-val-4').textContent = fmtn(msgs);
-  } else if (currentGoal === 'SALES_ECOMMERCE') {
-    updateFunnel('Impressões', imp, 'Cliques', clicks, 'LP Views', views, 'Add to Cart', atc,
-                 'CTR', ctr, 'Connect', connectRate, 'ATC Rate', (views>0?atc/views*100:0), 'Checkout Rate', checkoutRate);
-    document.getElementById('funnel-label-4').textContent = 'Compras';
-    document.getElementById('funnel-val-4').textContent = fmtn(purchases);
-    document.getElementById('rate-label-4').textContent = 'Taxa de Compra';
-    document.getElementById('rate-val-4').textContent = purchaseRate.toFixed(2) + '%';
-  } else {
-    // HYBRID / Default
-    updateFunnel('Cliques', clicks, 'Page Views', views, 'Checkouts', checkouts, 'Compras', purchases,
-                 'CTR', ctr, 'Connect', connectRate, 'Checkout', checkoutRate, 'Purchase', purchaseRate);
-  }
-
-  // Update Small KPIs
-  document.getElementById('mk-atc').textContent = fmtn(atc);
-  document.getElementById('mk-freq').textContent = freq.toFixed(2) + 'x';
-  document.getElementById('mk-cpm-val').textContent = fmt(cpm);
-
-  // Update Progress Bars
-  document.getElementById('mk-checkouts').textContent = fmtn(checkouts);
-  const chkPct = Math.min(100, (checkouts / Math.max(1, views) * 100));
-  document.getElementById('checkout-progress-pct').textContent = chkPct.toFixed(1) + '%';
-  document.getElementById('checkout-progress-bar').style.width = chkPct + '%';
-
-  const cpCheckout = checkouts > 0 ? spend / checkouts : 0;
-  document.getElementById('mk-cpcheckout').textContent = fmt(cpCheckout);
-  document.getElementById('cpcheckout-progress-bar').style.width = Math.min(100, (cpCheckout / 100 * 100)) + '%';
-
-  document.getElementById('mk-msgs-val').textContent = fmtn(msgs);
-  const msgPct = Math.min(100, (msgs / Math.max(1, leads) * 100));
-  document.getElementById('msg-progress-pct').textContent = msgPct.toFixed(1) + '%';
-  document.getElementById('msg-progress-bar').style.width = msgPct + '%';
+  // (Funnel, progress cards e small KPIs removidos da UI)
 
   // Tables
   metaCamps = Object.values(campMap).map(c => ({
@@ -2548,57 +2511,7 @@ function renderMetaCharts(daily, camps, goal) {
   renderMiniSparkline('chart-mini-leads', leads, '#10b981');
   renderMiniSparkline('chart-mini-cpl', dates.map(d => (daily[d].leads > 0 ? (daily[d].spend || 0) / daily[d].leads : 0)), '#f59e0b');
 
-  // Line Chart: Adapt to Goal
-  if (metaCharts.revPur) metaCharts.revPur.destroy();
-  const ctxLine = document.getElementById('chart-rev-pur').getContext('2d');
-  
-  let labelPrimary = 'Faturamento', dataPrimary = revs, colorPrimary = '#10b981';
-  let labelSecondary = 'Compras', dataSecondary = purs, colorSecondary = '#3b82f6';
-
-  if (goal === 'LEAD_GENERATION') {
-    labelPrimary = 'Leads'; dataPrimary = leads; colorPrimary = '#10b981';
-    labelSecondary = 'Mensagens'; dataSecondary = dates.map(d => daily[d].msgs); colorSecondary = '#3b82f6';
-  }
-
-  metaCharts.revPur = new Chart(ctxLine, {
-    type: 'line',
-    data: {
-      labels: dates.map(d => d.split('-').reverse().slice(0,2).join('/')),
-      datasets: [
-        { label: labelPrimary, data: dataPrimary, borderColor: colorPrimary, backgroundColor: `${colorPrimary}1A`, fill: true, tension: 0.4 },
-        { label: labelSecondary, data: dataSecondary, borderColor: colorSecondary, backgroundColor: 'transparent', tension: 0.4, yAxisID: 'y1' }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: { x: { display: false }, y: { display: false }, y1: { display: false, position: 'right' } }
-    }
-  });
-
-  // Donut Chart: Best Ads
-  const metric = goal === 'LEAD_GENERATION' ? 'leads' : 'purchases';
-  const topCamps = [...camps].sort((a,b) => b[metric] - a[metric]).slice(0, 5);
-  if (metaCharts.bestAds) metaCharts.bestAds.destroy();
-  const ctxDonut = document.getElementById('chart-best-ads').getContext('2d');
-  metaCharts.bestAds = new Chart(ctxDonut, {
-    type: 'doughnut',
-    data: {
-      labels: topCamps.map(c => c.name.substring(0,15)),
-      datasets: [{
-        data: topCamps.map(c => c[metric]),
-        backgroundColor: ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#a855f7'],
-        borderWidth: 0
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { position: 'right', labels: { color: '#a1a1aa', font: { size: 10 } } } },
-      cutout: '70%'
-    }
-  });
+  // (Gráficos chart-rev-pur e chart-best-ads removidos da UI — apenas sparklines mantidos)
 }
 
 function renderMetaTables(goal) {
