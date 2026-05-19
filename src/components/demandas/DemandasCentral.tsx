@@ -450,6 +450,10 @@ export default function DemandasCentral({ data }: Props) {
           <DashboardView
             items={filtered}
             stats={stats}
+            onGoToQuadro={(statusFilter) => {
+              setView('quadro');
+              // optionally pre-filter — for now just switches to quadro
+            }}
           />
         )}
         {view === 'trash' && (
