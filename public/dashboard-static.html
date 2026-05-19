@@ -2099,11 +2099,11 @@ window.addEventListener('click', function(e) {
 
 function renderAll(filter) {
   const list = filter==='__all__' ? Object.values(accounts) : accounts[filter] ? [accounts[filter]] : [];
-  renderOverview(list, filter);
-  renderMeta(filter);
-  renderGoogle(filter);
-  updatePerformanceScore(list);
-  generateAIInsights(list, filter);
+  try { renderOverview(list, filter); } catch(e) { console.error('[renderOverview]', e); }
+  try { renderMeta(filter); } catch(e) { console.error('[renderMeta]', e); }
+  try { renderGoogle(filter); } catch(e) { console.error('[renderGoogle]', e); }
+  try { updatePerformanceScore(list); } catch(e) {}
+  try { generateAIInsights(list, filter); } catch(e) {}
 }
 
 function updatePerformanceScore(list) {
@@ -2449,31 +2449,15 @@ function renderMeta(filter) {
   renderMetaCharts(dailyData, metaCamps, currentGoal);
 }
 
-function updateFunnel(l1, v1, l2, v2, l3, v3, l4, v4, rl1, rv1, rl2, rv2, rl3, rv3, rl4, rv4) {
-  document.getElementById('funnel-label-1').textContent = l1;
-  document.getElementById('funnel-val-1').textContent = fmtn(v1);
-  document.getElementById('funnel-label-2').textContent = l2;
-  document.getElementById('funnel-val-2').textContent = fmtn(v2);
-  document.getElementById('funnel-label-3').textContent = l3;
-  document.getElementById('funnel-val-3').textContent = fmtn(v3);
-  document.getElementById('funnel-label-4').textContent = l4;
-  document.getElementById('funnel-val-4').textContent = fmtn(v4);
-  
-  document.getElementById('rate-label-1').textContent = rl1;
-  document.getElementById('rate-val-1').textContent = (typeof rv1 === 'number' ? rv1.toFixed(2) + '%' : rv1);
-  document.getElementById('rate-label-2').textContent = rl2;
-  document.getElementById('rate-val-2').textContent = (typeof rv2 === 'number' ? rv2.toFixed(2) + '%' : rv2);
-  document.getElementById('rate-label-3').textContent = rl3;
-  document.getElementById('rate-val-3').textContent = (typeof rv3 === 'number' ? rv3.toFixed(2) + '%' : rv3);
-  document.getElementById('rate-label-4').textContent = rl4;
-  document.getElementById('rate-val-4').textContent = (typeof rv4 === 'number' ? rv4.toFixed(2) + '%' : rv4);
-}
+function updateFunnel() { /* funnel removido da UI */ }
 
 let metaCharts = {};
 
 function renderMiniSparkline(id, data, color) {
   if (metaCharts[id]) metaCharts[id].destroy();
-  const ctx = document.getElementById(id).getContext('2d');
+  const el = document.getElementById(id);
+  if (!el) return;
+  const ctx = el.getContext('2d');
   metaCharts[id] = new Chart(ctx, {
     type: 'line',
     data: {
