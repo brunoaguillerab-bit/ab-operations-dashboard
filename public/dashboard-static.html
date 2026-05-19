@@ -1021,7 +1021,12 @@ tr:hover td {
 .ai-feed-card { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:13px; overflow:hidden; display:flex; flex-direction:column; }
 .ai-feed-hdr { padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:space-between; gap:8px; flex-shrink:0; }
 .ai-filter-btn { padding:3px 9px; border-radius:6px; font-size:10px; font-weight:600; background:none; border:1px solid rgba(255,255,255,0.07); color:#6B7280; cursor:pointer; transition:all 0.15s; }
-.ai-filter-btn:hover,.ai-filter-btn.active { background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.3); color:#EF4444; }
+.ai-filter-btn:hover { background:rgba(255,255,255,0.05); color:#D1D5DB; }
+.ai-filter-btn.active                   { background:rgba(239,68,68,0.12);  border-color:rgba(239,68,68,0.35);  color:#EF4444; }
+.ai-filter-btn.active[data-type="wa"]   { background:rgba(245,158,11,0.12); border-color:rgba(245,158,11,0.35); color:#F59E0B; }
+.ai-filter-btn.active[data-type="ok"]   { background:rgba(16,185,129,0.12); border-color:rgba(16,185,129,0.35); color:#10B981; }
+.ai-filter-btn.active[data-type="sc"]   { background:rgba(139,92,246,0.12); border-color:rgba(139,92,246,0.35); color:#8B5CF6; }
+.ai-filter-btn.active[data-type="all"]  { background:rgba(255,255,255,0.06); border-color:rgba(255,255,255,0.18); color:#F3F4F6; }
 .ai-insight-list { padding:6px; display:flex; flex-direction:column; gap:4px; flex:1; overflow-y:auto; }
 .ai-irow { display:flex; align-items:flex-start; gap:8px; padding:8px 10px; border-radius:9px; background:rgba(255,255,255,0.01); border-left:3px solid transparent; cursor:pointer; transition:background 0.15s; }
 .ai-irow:hover { background:rgba(255,255,255,0.03); }
@@ -1523,11 +1528,11 @@ tr:hover td {
               <span id="ai-alert-badge" style="background:rgba(239,68,68,0.15);color:#EF4444;font-size:9px;font-weight:700;padding:1px 6px;border-radius:20px">0</span>
             </div>
             <div style="display:flex;gap:5px" id="ai-filter-btns">
-              <button class="ai-filter-btn active" onclick="filterAIFeed('all',this)">Todos</button>
-              <button class="ai-filter-btn" onclick="filterAIFeed('cr',this)">🔴 Crítico</button>
-              <button class="ai-filter-btn" onclick="filterAIFeed('wa',this)">🟡 Atenção</button>
-              <button class="ai-filter-btn" onclick="filterAIFeed('ok',this)">🟢 Opport.</button>
-              <button class="ai-filter-btn" onclick="filterAIFeed('sc',this)">🟣 Escala</button>
+              <button class="ai-filter-btn active" data-type="all" onclick="filterAIFeed('all',this)">Todos</button>
+              <button class="ai-filter-btn" data-type="cr"  onclick="filterAIFeed('cr',this)">🔴 Crítico</button>
+              <button class="ai-filter-btn" data-type="wa"  onclick="filterAIFeed('wa',this)">🟡 Atenção</button>
+              <button class="ai-filter-btn" data-type="ok"  onclick="filterAIFeed('ok',this)">🟢 Opport.</button>
+              <button class="ai-filter-btn" data-type="sc"  onclick="filterAIFeed('sc',this)">🟣 Escala</button>
             </div>
           </div>
           <div class="ai-insight-list" id="ai-insight-list">
@@ -3168,6 +3173,7 @@ window.onload = () => { reloadData(); renderOperacional(); };
 
 let aiInsightsData = [];
 let aiScores = {};
+let aiActiveFilter = 'all';
 
 function calcAIScore(acc) {
   let score = 0;
@@ -3314,7 +3320,11 @@ function renderAISection(list, filter) {
   aiInsightsData = generateAIInsightsData(list);
   const badge = document.getElementById('ai-alert-badge');
   if (badge) badge.textContent = aiInsightsData.filter(i => i.type === 'cr' || i.type === 'wa').length;
-  renderAIFeed(aiInsightsData, 'all');
+  renderAIFeed(aiInsightsData, aiActiveFilter);
+  // Sync active button visual state
+  document.querySelectorAll('.ai-filter-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.type === aiActiveFilter);
+  });
 
   // Predictions
   renderAIPredictions(list);
@@ -3355,6 +3365,7 @@ function renderAIFeed(data, filter) {
 }
 
 function filterAIFeed(type, btn) {
+  aiActiveFilter = type;
   document.querySelectorAll('.ai-filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderAIFeed(aiInsightsData, type);
