@@ -18,6 +18,7 @@ import {
   Search,
   TrendingUp,
   Bell,
+  BrainCircuit,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -44,6 +45,7 @@ const menuItems = [
   { icon: Bell, label: 'Alertas de Saldos', href: '/alertas-saldos' },
   { icon: MetaLogo, label: 'Meta Ads', href: '/meta-ads' },
   { icon: GoogleLogo, label: 'Google Ads', href: '/google-ads' },
+  { icon: BrainCircuit, label: 'IA Central', href: '/ia-central' },
   { icon: Zap, label: 'Automacao IA', href: '/automacao' },
 ];
 
