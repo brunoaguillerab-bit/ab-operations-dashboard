@@ -22,7 +22,9 @@ export default function EmbedFrame({ baseUrl, hash, title }: EmbedFrameProps) {
 
   useEffect(() => {
     // ?embed=true hides the marketing dashboard's internal sidebar
-    setIframeUrl(`${baseUrl}?embed=true#${hash}`);
+    // We add v=1.2 as a cache bust parameter to ensure the latest dashboard-static.html is always loaded
+    const separator = baseUrl.includes('?') ? '&' : '?';
+    setIframeUrl(`${baseUrl}${separator}embed=true&v=1.2#${hash}`);
     setIsLoading(true);
   }, [baseUrl, hash]);
 
