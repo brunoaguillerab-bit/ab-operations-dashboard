@@ -14,9 +14,9 @@ interface ClienteData {
   m_spend: number;
   m_freq: number;
   m_results: number;
-  delta_conv:  number | null;
-  delta_cpa:   number | null;
-  delta_freq:  number | null;
+  delta_conv: number | null;
+  delta_cpa: number | null;
+  delta_freq: number | null;
   delta_spend: number | null;
   plataformas: string;
   eur: boolean;
@@ -27,33 +27,36 @@ interface ClienteData {
 interface APIResponse {
   data: ClienteData[];
   periodo: {
-    atual:    { from: string; to: string };
+    atual: { from: string; to: string };
     anterior: { from: string; to: string };
     dateFrom: string;
-    dateTo:   string;
+    dateTo: string;
   };
+  sheetName?: string;
   updatedAt?: string;
   error?: string;
 }
 
+const FLOW_NAME = '02 Agent - Alertas AB Tracking';
+
 const STATUS_CONFIG = {
-  'Crítico': { bg: 'bg-red-900/20',    border: 'border-red-600/40',    text: 'text-red-400',    pill: 'bg-red-900/30 border-red-500',    icon: AlertCircle },
+  'Crítico': { bg: 'bg-red-900/20', border: 'border-red-600/40', text: 'text-red-400', pill: 'bg-red-900/30 border-red-500', icon: AlertCircle },
   'Atenção': { bg: 'bg-yellow-900/20', border: 'border-yellow-600/40', text: 'text-yellow-400', pill: 'bg-yellow-900/30 border-yellow-500', icon: AlertTriangle },
-  'Bom':     { bg: 'bg-green-900/20',  border: 'border-green-600/40',  text: 'text-green-400',  pill: 'bg-green-900/30 border-green-500',  icon: CheckCircle },
+  'Bom': { bg: 'bg-green-900/20', border: 'border-green-600/40', text: 'text-green-400', pill: 'bg-green-900/30 border-green-500', icon: CheckCircle },
 } as const;
 
 const FILTER_STYLES = {
-  'Crítico':   { active: 'bg-red-900/30 border-red-500 text-red-400',         base: 'border-[#2A2F3A] text-[#A1A1AA]' },
-  'Atenção':   { active: 'bg-yellow-900/30 border-yellow-500 text-yellow-400', base: 'border-[#2A2F3A] text-[#A1A1AA]' },
+  'Crítico': { active: 'bg-red-900/30 border-red-500 text-red-400', base: 'border-[#2A2F3A] text-[#A1A1AA]' },
+  'Atenção': { active: 'bg-yellow-900/30 border-yellow-500 text-yellow-400', base: 'border-[#2A2F3A] text-[#A1A1AA]' },
   'Destaques': { active: 'bg-purple-900/30 border-purple-500 text-purple-400', base: 'border-[#2A2F3A] text-[#A1A1AA]' },
 };
 
 export default function ABTrackingPage() {
-  const [data, setData]             = useState<ClienteData[]>([]);
-  const [periodo, setPeriodo]       = useState<APIResponse['periodo'] | null>(null);
-  const [updatedAt, setUpdatedAt]   = useState<string | null>(null);
-  const [loading, setLoading]       = useState(true);
-  const [error, setError]           = useState<string | null>(null);
+  const [data, setData] = useState<ClienteData[]>([]);
+  const [sheetName, setSheetName] = useState(FLOW_NAME);
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedFilter, setSelectedFilter] = useState<keyof typeof FILTER_STYLES | null>(null);
   const [searchValue, setSearchValue] = useState('');
   const [n8nStatus, setN8nStatus] = useState<'idle' | 'loading' | 'ok' | 'error'>('idle');
@@ -61,22 +64,28 @@ export default function ABTrackingPage() {
   async function triggerN8n() {
     setN8nStatus('loading');
     try {
-      const res  = await fetch('/api/n8n-trigger', { method: 'POST' });
+      const res = await fetch('/api/n8n-trigger', { method: 'POST' });
       const json = await res.json();
-      if (!res.ok || json.error) { setN8nStatus('error'); }
-      else { setN8nStatus('ok'); setTimeout(() => setN8nStatus('idle'), 4000); }
-    } catch { setN8nStatus('error'); }
+      if (!res.ok || json.error) setN8nStatus('error');
+      else {
+        setN8nStatus('ok');
+        setTimeout(() => setN8nStatus('idle'), 4000);
+        setTimeout(() => fetchData(), 2500);
+      }
+    } catch {
+      setN8nStatus('error');
+    }
   }
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/windsor');
+      const res = await fetch('/api/agent-alertas', { cache: 'no-store' });
       const json: APIResponse = await res.json();
       if (json.error) throw new Error(json.error);
       setData(json.data);
-      setPeriodo(json.periodo);
+      setSheetName(json.sheetName || FLOW_NAME);
       setUpdatedAt(json.updatedAt ?? null);
     } catch (e) {
       setError(String(e));
@@ -95,8 +104,8 @@ export default function ABTrackingPage() {
   });
 
   const counts = {
-    Crítico:   data.filter(d => d.status === 'Crítico').length,
-    Atenção:   data.filter(d => d.status === 'Atenção').length,
+    Crítico: data.filter(d => d.status === 'Crítico').length,
+    Atenção: data.filter(d => d.status === 'Atenção').length,
     Destaques: data.filter(d => d.status === 'Bom').length,
   };
 
@@ -104,9 +113,7 @@ export default function ABTrackingPage() {
     ? new Date(updatedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     : null;
 
-  const subtitle = periodo
-    ? `Atual: ${periodo.atual.from} → ${periodo.atual.to}  ·  Ant: ${periodo.anterior.from} → ${periodo.anterior.to}${horaAtualizado ? `  ·  atualizado às ${horaAtualizado}` : ''}`
-    : 'Comparativo 7 dias vs 7 dias anteriores';
+  const subtitle = `Fonte: Google Sheets · aba "${sheetName}"${horaAtualizado ? ` · atualizado às ${horaAtualizado}` : ''}`;
 
   return (
     <DashboardLayout>
@@ -114,12 +121,11 @@ export default function ABTrackingPage() {
         <PageHeader
           icon={TrendingUp}
           iconColor="from-amber-500 to-orange-600"
-          title="Análise Diária de Desempenho"
+          title={FLOW_NAME}
           subtitle={subtitle}
         />
 
         <div className="flex-1 p-6 lg:p-10 overflow-y-auto">
-          {/* Toolbar */}
           <div className="flex flex-col sm:flex-row gap-4 mb-8">
             <div className="flex flex-wrap gap-2">
               {(Object.keys(FILTER_STYLES) as (keyof typeof FILTER_STYLES)[]).map(f => {
@@ -150,7 +156,7 @@ export default function ABTrackingPage() {
                 onClick={fetchData}
                 disabled={loading}
                 className="p-2 rounded-lg bg-[#181C25] border border-[#2A2F3A] text-[#A1A1AA] hover:text-white hover:bg-white/5 transition-all disabled:opacity-40"
-                title="Atualizar Windsor"
+                title="Atualizar Google Sheets"
               >
                 <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
               </button>
@@ -160,25 +166,23 @@ export default function ABTrackingPage() {
                 title="Disparar workflow n8n"
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs font-medium transition-all ${
                   n8nStatus === 'loading' ? 'bg-orange-900/20 border-orange-600/30 text-orange-400 cursor-not-allowed' :
-                  n8nStatus === 'ok'      ? 'bg-green-900/20 border-green-600/30 text-green-400' :
-                  n8nStatus === 'error'   ? 'bg-red-900/20 border-red-600/30 text-red-400' :
+                  n8nStatus === 'ok' ? 'bg-green-900/20 border-green-600/30 text-green-400' :
+                  n8nStatus === 'error' ? 'bg-red-900/20 border-red-600/30 text-red-400' :
                   'bg-[#181C25] border-[#2A2F3A] text-[#A1A1AA] hover:text-orange-400 hover:border-orange-600/40'
                 }`}
               >
                 <Zap size={13} className={n8nStatus === 'loading' ? 'animate-pulse' : ''} />
-                {n8nStatus === 'loading' ? 'Rodando…' : n8nStatus === 'ok' ? 'Disparado!' : n8nStatus === 'error' ? 'Erro n8n' : 'Rodar n8n'}
+                {n8nStatus === 'loading' ? 'Rodando...' : n8nStatus === 'ok' ? 'Disparado!' : n8nStatus === 'error' ? 'Erro n8n' : 'Rodar n8n'}
               </button>
             </div>
           </div>
 
-          {/* Error */}
           {error && (
             <div className="mb-6 p-4 bg-red-900/20 border border-red-600/40 rounded-lg text-red-400 text-sm">
               Erro ao buscar dados: {error}
             </div>
           )}
 
-          {/* Skeleton loading */}
           {loading && !error && (
             <div className="grid gap-3">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -199,16 +203,16 @@ export default function ABTrackingPage() {
             </div>
           )}
 
-          {/* Cards */}
           {!loading && filtered.length > 0 && (
             <div className="grid gap-3">
               {filtered.map((item, idx) => {
                 const cfg = STATUS_CONFIG[item.status];
                 const Icon = cfg.icon;
                 const moeda = item.eur ? '€' : 'R$';
+                const extraTags = item.tags.filter(tag => tag !== item.status);
 
                 return (
-                  <div key={idx} className={`p-5 rounded-xl border ${cfg.bg} ${cfg.border}`}>
+                  <div key={`${item.cliente}-${item.plataformas}-${idx}`} className={`p-5 rounded-xl border ${cfg.bg} ${cfg.border}`}>
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-start gap-3 flex-1 min-w-0">
                         <Icon size={18} className={`mt-0.5 flex-shrink-0 ${cfg.text}`} />
@@ -218,7 +222,7 @@ export default function ABTrackingPage() {
                             <span className={`px-2 py-0.5 text-xs rounded-full border ${cfg.pill} ${cfg.text}`}>
                               {item.status}
                             </span>
-                            {item.tags.map((tag, i) => (
+                            {extraTags.map((tag, i) => (
                               <span key={i} className="px-2 py-0.5 text-xs rounded-full bg-purple-900/20 border border-purple-600/40 text-purple-400">
                                 {tag}
                               </span>
@@ -230,24 +234,19 @@ export default function ABTrackingPage() {
                       <div className="text-xs text-[#6B7280] flex-shrink-0 capitalize">{item.plataformas}</div>
                     </div>
 
-                    {/* Metrics */}
                     <div className="flex flex-wrap gap-3 mt-4">
                       {item.plataformas !== 'meta' && item.g_spend > 0 && (
                         <>
-                          <Metric label="G Spend"    value={`${moeda}${item.g_spend.toFixed(2)}`} />
-                          <Metric label="Conversões" value={String(item.g_conversions)}
-                            delta={item.delta_conv} higherIsBetter />
-                          <Metric label="CPA"        value={item.g_cpa > 0 ? `${moeda}${item.g_cpa.toFixed(2)}` : '—'}
-                            delta={item.delta_cpa} higherIsBetter={false} />
+                          <Metric label="G Spend" value={`${moeda}${item.g_spend.toFixed(2)}`} />
+                          <Metric label="Conversões" value={String(item.g_conversions)} delta={item.delta_conv} higherIsBetter />
+                          <Metric label="CPA" value={item.g_cpa > 0 ? `${moeda}${item.g_cpa.toFixed(2)}` : '-'} delta={item.delta_cpa} higherIsBetter={false} />
                         </>
                       )}
                       {item.plataformas !== 'google' && item.m_spend > 0 && (
                         <>
-                          <Metric label="M Spend"   value={`${moeda}${item.m_spend.toFixed(2)}`} />
-                          <Metric label="Frequency" value={item.m_freq > 0 ? item.m_freq.toFixed(2) : '—'}
-                            highlight={item.m_freq > 3.5}
-                            delta={item.delta_freq} higherIsBetter={false} />
-                          <Metric label="Results"   value={String(item.m_results)} />
+                          <Metric label="M Spend" value={`${moeda}${item.m_spend.toFixed(2)}`} />
+                          <Metric label="Frequency" value={item.m_freq > 0 ? item.m_freq.toFixed(2) : '-'} highlight={item.m_freq > 3.5} delta={item.delta_freq} higherIsBetter={false} />
+                          <Metric label="Results" value={String(item.m_results)} />
                         </>
                       )}
                       {item.g_spend === 0 && item.m_spend === 0 && (
@@ -260,12 +259,11 @@ export default function ABTrackingPage() {
             </div>
           )}
 
-          {/* Empty */}
           {!loading && !error && filtered.length === 0 && (
             <div className="flex flex-col items-center justify-center py-20">
               <p className="text-[#A1A1AA] text-lg font-medium">Nenhum cliente encontrado</p>
               <p className="text-[#6B7280] text-sm mt-1">
-                {data.length === 0 ? 'Verifique a WINDSOR_API_KEY no .env.local' : 'Ajuste os filtros'}
+                {data.length === 0 ? 'Aguardando o n8n gravar a aba do Google Sheets' : 'Ajuste os filtros'}
               </p>
             </div>
           )}

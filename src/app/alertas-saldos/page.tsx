@@ -7,6 +7,8 @@ import { Bell, AlertCircle, AlertTriangle, CheckCircle, RefreshCw, Zap, HelpCirc
 
 interface ClienteSaldo {
   cliente:     string;
+  account_id: string;
+  account_name: string;
   orcamento:   number;
   gasto:       number;
   saldo:       number;
@@ -16,15 +18,22 @@ interface ClienteSaldo {
   eur:         boolean;
   g_spend:     number;
   m_spend:     number;
+  media_diaria: number;
+  dias_restantes: number | null;
+  responsavel: string;
+  insight: string;
 }
 
 interface APIResponse {
   data:     ClienteSaldo[];
   resumo:   { criticos: number; atencao: number; ok: number; semOrc: number; total: number };
   periodo:  { dateFrom: string; dateTo: string; diasNoMes: number; totalDias: number };
+  sheetName?: string;
   updatedAt?: string;
   error?:   string;
 }
+
+const FLOW_NAME = '03 Agent - Monitor de Saldo AB';
 
 const STATUS_CONFIG = {
   'CRÍTICO':       { bg: 'bg-red-900/20',    border: 'border-red-600/40',    text: 'text-red-400',    pill: 'bg-red-900/40 border-red-500',      icon: AlertCircle,   bar: 'bg-red-500' },
@@ -39,6 +48,7 @@ export default function AlertasSaldosPage() {
   const [data, setData]         = useState<ClienteSaldo[]>([]);
   const [resumo, setResumo]     = useState<APIResponse['resumo'] | null>(null);
   const [periodo, setPeriodo]   = useState<APIResponse['periodo'] | null>(null);
+  const [sheetName, setSheetName] = useState(FLOW_NAME);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState<string | null>(null);
@@ -50,12 +60,13 @@ export default function AlertasSaldosPage() {
     setLoading(true);
     setError(null);
     try {
-      const res  = await fetch('/api/alertas-saldos');
+      const res  = await fetch('/api/alertas-saldos', { cache: 'no-store' });
       const json: APIResponse = await res.json();
       if (json.error) throw new Error(json.error);
       setData(json.data);
       setResumo(json.resumo);
       setPeriodo(json.periodo);
+      setSheetName(json.sheetName || FLOW_NAME);
       setUpdatedAt(json.updatedAt ?? null);
     } catch (e) {
       setError(String(e));
@@ -69,10 +80,14 @@ export default function AlertasSaldosPage() {
   async function triggerN8n() {
     setN8nStatus('loading');
     try {
-      const res  = await fetch('/api/n8n-trigger', { method: 'POST' });
+      const res  = await fetch('/api/n8n-trigger-saldos', { method: 'POST' });
       const json = await res.json();
       if (!res.ok || json.error) setN8nStatus('error');
-      else { setN8nStatus('ok'); setTimeout(() => setN8nStatus('idle'), 4000); }
+      else {
+        setN8nStatus('ok');
+        setTimeout(() => setN8nStatus('idle'), 4000);
+        setTimeout(() => fetchData(), 3500);
+      }
     } catch { setN8nStatus('error'); }
   }
 
@@ -86,9 +101,7 @@ export default function AlertasSaldosPage() {
     ? new Date(updatedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     : null;
 
-  const subtitle = periodo
-    ? `Mês atual: ${periodo.dateFrom} → ${periodo.dateTo}  ·  Dia ${periodo.diasNoMes}/${periodo.totalDias}${hora ? `  ·  atualizado às ${hora}` : ''}`
-    : 'Monitoramento de saldo por cliente';
+  const subtitle = `Fonte: Google Sheets · aba "${sheetName}"${hora ? ` · atualizado às ${hora}` : ''}`;
 
   const semOrcamento = resumo?.semOrc ?? 0;
 
@@ -98,7 +111,7 @@ export default function AlertasSaldosPage() {
         <PageHeader
           icon={Bell}
           iconColor="from-orange-500 to-red-600"
-          title="Alertas de Saldos"
+          title={FLOW_NAME}
           subtitle={subtitle}
         />
 
@@ -188,18 +201,6 @@ export default function AlertasSaldosPage() {
             </div>
           )}
 
-          {/* Budget config notice */}
-          {!loading && !error && semOrcamento > 0 && (
-            <div className="mb-6 p-4 bg-yellow-900/10 border border-yellow-600/20 rounded-lg flex items-start gap-3">
-              <AlertTriangle size={16} className="text-yellow-400 mt-0.5 flex-shrink-0" />
-              <p className="text-yellow-300/80 text-sm">
-                <strong>{semOrcamento} cliente{semOrcamento > 1 ? 's' : ''}</strong> sem orçamento configurado.
-                Edite o arquivo <code className="text-yellow-200 bg-black/30 px-1 rounded">src/app/api/alertas-saldos/route.ts</code> e
-                preencha o campo <code className="text-yellow-200 bg-black/30 px-1 rounded">orcamento</code> com os valores do Google Sheets.
-              </p>
-            </div>
-          )}
-
           {/* Skeleton */}
           {loading && (
             <div className="grid gap-3">
@@ -230,6 +231,9 @@ export default function AlertasSaldosPage() {
                             </span>
                             <span className="text-xs text-[#6B7280] capitalize">{item.plataformas}</span>
                           </div>
+                          {item.account_name && (
+                            <p className="text-xs text-[#6B7280] mt-1">{item.account_name}</p>
+                          )}
                         </div>
                       </div>
 
@@ -248,7 +252,7 @@ export default function AlertasSaldosPage() {
                         ) : (
                           <>
                             <Stat label="Gasto mês" value={`${moeda}${item.gasto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`} />
-                            <Stat label="Orçamento" value="—" dimmed />
+                            <Stat label="Orçamento" value="-" dimmed />
                           </>
                         )}
                       </div>
@@ -284,7 +288,7 @@ export default function AlertasSaldosPage() {
             <div className="flex flex-col items-center justify-center py-20">
               <p className="text-[#A1A1AA] text-lg font-medium">Nenhum cliente encontrado</p>
               <p className="text-[#6B7280] text-sm mt-1">
-                {data.length === 0 ? 'Verifique a WINDSOR_API_KEY no .env.local' : 'Ajuste os filtros'}
+                {data.length === 0 ? 'Aguardando o n8n gravar a aba do Google Sheets' : 'Ajuste os filtros'}
               </p>
             </div>
           )}
